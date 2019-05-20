@@ -5,6 +5,7 @@ import editdistance
 import random
 import argparse
 from itertools import combinations
+###add subarguments
 def main():
     parser = argparse.ArgumentParser(description='Community Construction')
     parser.add_argument("-i", "--input", type=argparse.FileType("r"),dest="input",
@@ -113,6 +114,9 @@ def editDistanceDictionary(sequence_dict):
                     dict_ed[key][edvalue]=[key1]
     return dict_ed
 
+def customeditdistance(seq1,seq2):
+    pass
+
 def startcommunity(x):
     starter_community=[]
     for line in x:
@@ -209,6 +213,9 @@ def joinstrain(x,y,z):
 def outputnostrain(x,y):
     for i in y:
         x.write("{}\n".format(i))
+
+def outputfasta(x):
+    pass
 
 if __name__ == "__main__":
     main()

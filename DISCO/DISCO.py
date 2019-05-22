@@ -5,24 +5,53 @@ import editdistance
 import random
 import argparse
 from itertools import combinations
-###add subarguments
+
 def main():
-    parser = argparse.ArgumentParser(description='Community Construction')
+    parser = argparse.ArgumentParser(prog="disco",add_help=False)
     parser.add_argument("-i", "--input", type=argparse.FileType("r"),dest="input",
                       help="alignment file in fasta form")
     parser.add_argument("--editdistance",type=int, dest="edit_value",
-                        help="Edit distance value as interger")
-    parser.add_argument("--community",type=argparse.FileType("r"),dest="starter_community",
-                        help="Starting community with each identifier on its own line")
-    parser.add_argument("--trimPrimers",type=int,dest="trimPrimers",
-                        help="length of primers to trim")
+                     help="Edit distance value as interger")
     parser.add_argument("-o","--output",type=argparse.FileType("w"),dest="output",
                         help="output file name")
     parser.add_argument("--seed",type=int,default=10,
                         help="seed number for reproducibility, default is 10")
-    parser.add_argument("--strain",type=argparse.FileType("r"),
+
+
+    subparsers = parser.add_subparsers(help="sub-command help")
+
+    #Create subcommand
+    parser_create = subparsers.add_parser("create", parents=[parser],help='Module to create highly diverse community at specified edit distance')
+    parser_create.add_argument("--community",type=argparse.FileType("r"),dest="starter_community",
+                        help="Starting community with each identifier on its own line")
+    parser_create.add_argument("--trimPrimers",type=int,dest="trimPrimers",
+                        help="length of primers to trim")
+    parser_create.add_argument("--metadata",type=argparse.FileType("r"),
                         help="information to combine with the community output, file must contain information in the first column and the identifiers in the last in tab deliminated form, with a header")
+    parser_create.add_argument("--fasta",type=argparse.FileType("w"),dest="output_fasta",
+                        help="Output final community fasta file")
+    parser_create.set_defaults(func=create)
+
+    #Correct subcommand
+    parser_correct=subparsers.add_parser("correct", parents=[parser],help="Module to correct sequencing errors based on the community and edit distance")
+    parser_correct.add_argument("--EDC",type=argparse.FileType("r"),dest="input_community",
+                        help="Input community with each identifier on its own line")
+    parser_correct.set_defaults(func=correct)
+
+    #Subsample subcommand
+    parser_subsample=subparsers.add_parser("subsample", parents=[parser],help="Module to subsample highly diverse community")
+    parser_subsample.add_argument("--strains",type=int, dest="strains",
+                    help="number of strains desired in final community")
+    parser_subsample.add_argument("--taxonomy",type=argparse.FileType("r"),dest="taxonomy",
+                        help="Tab seperated file with strain ids in first column and taxonomic rank in second")
+    parser_subsample.add_argument("--proportion",type=argparse.FileType("r"),dest="proportion",
+                        help="File of the relative proportions of each taxonomic rank desired in final community")
+    parser_subsample.set_defaults(func=subsample)
+
+    # Parse args
     args = parser.parse_args()
+
+def create(args):
     random.seed(args.seed)
     if (args.input):
         if (args.trimPrimers):
@@ -81,6 +110,12 @@ def main():
             outputfile=outfile(args.edit_value)
             print("Writing output file")
             outputnostrain(outputfile,community)
+
+def correct(args):
+    pass
+
+def subsample(args):
+    pass
 
 def sequenceDictionary(x):
     sequence_dict={}

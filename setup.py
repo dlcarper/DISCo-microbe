@@ -16,7 +16,7 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
         long_description = f.read()
 
-setup(name = "tsfm",
+setup(name = "DISCO",
       setup_requires=['pytest-runner'],
       tests_require=['pytest'],
       install_requires=['biopython'],

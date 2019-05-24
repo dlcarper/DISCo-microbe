@@ -131,6 +131,47 @@ def TrimPrimers(input_alignment,primer_length):
         sequence_dict[record.id]=str(record.seq)
     return sequence_dict
 
+nucleiccodedicitonary={"N":set(["A","G","C","T","U"]),
+                    "R":set(["A","G"]),
+                    "Y":set(["C","T","U"]),
+                    "S":set(["C","G"]),
+                    "W":set(["A","T","U"]),
+                    "K":set(["G","T","U"]),
+                    "M":set(["A","C"]),
+                    "B":set(["C","G","T","U"]),
+                    "V":set(["A","C","G"]),
+                    "D":set(["A","G","T","U"]),
+                    "H":set(["A","C","T","U"])}
+
+standardcode=["A","C","G","T","U","-"]
+
+def customeditdistance(seq1,seq2):
+    edvalue=0
+    for char1, char2 in zip(seq1,seq2):
+            if char1==char2:
+                edvalue+=0
+            else:
+                if char1 in standardcode:
+                    if char2 in standardcode:
+                        edvalue+=1
+                    else:
+                        if char1 in nucleiccodedicitonary[char2]:
+                            edvalue+=0
+                        else:
+                            edvalue+=1
+                else:
+                    if char2 in standardcode:
+                        if char2 in nucleiccodedicitonary[char1]:
+                            edvalue+=0
+                        else:
+                            edvalue+=1
+                    else:
+                        if len(nucleiccodedicitonary[char1].intersection(nucleiccodedicitonary[char2])):
+                            edvalue+=0
+                        else:
+                            edvalue+=1
+    return edvalue
+
 def editDistanceDictionary(sequence_dict):
     dict_ed={}
     for key,value in sequence_dict.items():
@@ -138,7 +179,7 @@ def editDistanceDictionary(sequence_dict):
             if key == key1:
                 continue
             else:
-                edvalue=editdistance.eval(value,value1)
+                edvalue=customeditdistance(value,value1)
                 if (key in dict_ed.keys()):
                     if (edvalue in dict_ed[key].keys()):
                         dict_ed[key][edvalue].append(key1)
@@ -149,8 +190,6 @@ def editDistanceDictionary(sequence_dict):
                     dict_ed[key][edvalue]=[key1]
     return dict_ed
 
-def customeditdistance(seq1,seq2):
-    pass
 
 def startcommunity(input_community_file):
     starter_community=[]

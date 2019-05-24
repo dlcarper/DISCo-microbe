@@ -117,17 +117,17 @@ def correct(args):
 def subsample(args):
     pass
 
-def sequenceDictionary(x):
+def sequenceDictionary(input_alignment):
     sequence_dict={}
-    for record in SeqIO.parse(x, "fasta"):
+    for record in SeqIO.parse(input_alignment, "fasta"):
         sequence_dict[record.id]=str(record.seq)
     return sequence_dict
 
-def TrimPrimers(x,y):
+def TrimPrimers(input_alignment,primer_length):
     sequence_dict={}
-    for record in SeqIO.parse(x, "fasta"):
-        record.seq=record.seq[y:]
-        record.seq=record.seq[:-y]
+    for record in SeqIO.parse(input_alignment, "fasta"):
+        record.seq=record.seq[primer_length:]
+        record.seq=record.seq[:-primer_length]
         sequence_dict[record.id]=str(record.seq)
     return sequence_dict
 
@@ -152,35 +152,35 @@ def editDistanceDictionary(sequence_dict):
 def customeditdistance(seq1,seq2):
     pass
 
-def startcommunity(x):
+def startcommunity(input_community_file):
     starter_community=[]
-    for line in x:
+    for line in input_community:
         line=line.strip()
         starter_community.append(line)
     return starter_community
 
-def validateCommunity(x,y,z):
+def validateCommunity(input_community_file,editdistance_value,edit_distance_dictionary):
     community_validity=[]
-    distances=list(range(y)) #Create a list of numbers below edit distance value
-    distances.append(y)# append edit distance value to list
-    for pair in combinations(x,2):
-        if any([pair[0] in z[pair[1]][y] for y in distances if y in z[pair[1]]]):
+    distances=list(range(editdistance_value)) #Create a list of numbers below edit distance value
+    distances.append(editdistance_value)# append edit distance value to list
+    for pair in combinations(input_community_file,2):
+        if any([pair[0] in edit_distance_dictionary[pair[1]][editdistance_value] for editdistance_value in distances if editdistance_value in edit_distance_dictionary[pair[1]]]):
             community_validity.append(pair[0])
             community_validity.append(pair[1])
         else:
             continue
     return community_validity
 
-def withoutcommunityinput(x,y):
+def withoutcommunityinput(edit_distance_dictionary,editdistance_value):
     community = []
     smallest = 500 #number used that is bigger than number of possibilities
     EDnot_in_dict=[]# empty list but will contain members with no values at edit distance
-    for key in x: #loop through keys in the dictionaty made above
-        if y not in x[key]:#Check if the key has an editdistance of input
+    for key in edit_distance_dictionary: #loop through keys in the dictionaty made above
+        if editdistance_value not in edit_distance_dictionary[key]:#Check if the key has an editdistance of input
             EDnot_in_dict.append(key) #if not append the list
         else: # if it does have that edit distqance
-            if len(x[key][y])<smallest:#Check if the length of the values for the key at edit distance of input is less than the smallest number
-                smallest= len(x[key][y])#set smallest to the length of the smallest list
+            if len(edit_distance_dictionary[key][editdistance_value])<smallest:#Check if the length of the values for the key at edit distance of input is less than the smallest number
+                smallest= len(edit_distance_dictionary[key][editdistance_value])#set smallest to the length of the smallest list
                 smallest_sequence = key#Set smallest seqeunce equal to the key
     if not EDnot_in_dict:# check if this list is empty
         community.append(smallest_sequence) # if it is empty append community with smallest sequence
@@ -190,66 +190,66 @@ def withoutcommunityinput(x,y):
     print(len(EDnot_in_dict))
     return community
 
-def loopforCommunity(x,y,z):
+def loopforCommunity(community,editdistance_value,edit_distance_dictionary):
     not_community=[]#list of members to not put in community
-    distances=list(range(y)) #Create a list of numbers below edit distance value
-    distances.append(y)# append edit distance value to list
+    distances=list(range(editdistance_value)) #Create a list of numbers below edit distance value
+    distances.append(editdistance_value)# append edit distance value to list
     while True:# while there are memebers to loop through
         smallest=500
         smallest_sequence=""
         EDnot_in_dict=[]
-        for key in z:# loop through keys agains
+        for key in edit_distance_dictionary:# loop through keys agains
             member = False # set to false to keep looping
-            if key in x:#check if key is already in the communitiy
+            if key in community:#check if key is already in the communitiy
                 continue #if key in community skip
             else:#if key is not in community check if it is the value for the community members
-                for key2 in x:# loop through keys in community
-                    if any([key in z[key2][y] for y in distances if y in z[key2]]):
+                for key2 in community:# loop through keys in community
+                    if any([key in edit_distance_dictionary[key2][editdistance_value] for editdistance_value in distances if editdistance_value in edit_distance_dictionary[key2]]):
                         #check if key you are examining is a member of any member of the communities values at the edit distance 0 to input
                         member=True # set member to true
                         if not key in not_community: # if that key is not in not_community list add it
                             not_community.append(key)
                         break# if it is true break this loop
                 if not member: #if key is not a member
-                    if y in z[key]:# check if edit value is  present for key
-                        if len(z[key][y])<smallest:#Check if the length of the values for the key at edit distance of input is less than the smallest number
-                            smallest= len(z[key][y])#set smallest to the length of the smallest list
+                    if editdistance_value in edit_distance_dictionary[key]:# check if edit value is  present for key
+                        if len(edit_distance_dictionary[key][editdistance_value])<smallest:#Check if the length of the values for the key at edit distance of input is less than the smallest number
+                            smallest= len(edit_distance_dictionary[key][editdistance_value])#set smallest to the length of the smallest list
                             smallest_sequence= key#Set smallest seqeunce equal to the key
                     else: # if edit value isnt present in key
                         EDnot_in_dict.append(key) # add to list
         if smallest_sequence or EDnot_in_dict: # if either of these have a value
             if EDnot_in_dict: # if this list is not empty
-                x.append(random.choice(EDnot_in_dict)) # choose random member from list
+                community.append(random.choice(EDnot_in_dict)) # choose random member from list
             else: # if it is empty
-                x.append(smallest_sequence) # append community with smallest sequence
+                community.append(smallest_sequence) # append community with smallest sequence
         else: # if they dont have a value
             break # break because we are out of members
 
-    return x
+    return community
 
-def straininfo(x):
+def straininfo(metadata):
     strain_info ={} # empty dicionary for strain information
-    for i, line in enumerate(x): # count lines in file
+    for i, line in enumerate(metadata): # count lines in file
         line=line.strip()
         if (not i == 0): # if line is not the 1st (so the header)
             fields=line.split("\t") # split on tabs
             strain_info[fields[-1]]=fields[0]
     return strain_info
 
-def outfile(x):
-    outputfile=open('Community_ED{}.txt'.format(x),"w+")
+def outfile(editdistance_value):
+    outputfile=open('Community_ED{}.txt'.format(editdistance_value),"w+")
     return outputfile
 
-def joinstrain(x,y,z):
-    for key, value in x.items(): # loop through keys and values in strain dictionary
-        if key in y: # if that key is found in community
-            z.write("{}\t{}\n".format(key, value))
+def joinstrain(metadata,community,outfile_name):
+    for key, value in metadata.items(): # loop through keys and values in strain dictionary
+        if key in community: # if that key is found in community
+            outfile_name.write("{}\t{}\n".format(key, value))
 
-def outputnostrain(x,y):
-    for i in y:
-        x.write("{}\n".format(i))
+def outputnostrain(outfile_name,community):
+    for i in community:
+        outfile_name.write("{}\n".format(i))
 
-def outputfasta(x):
+def outputfasta():
     pass
 
 if __name__ == "__main__":

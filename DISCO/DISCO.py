@@ -285,11 +285,24 @@ def joinstrain(metadata,community,outfile_name):
             outfile_name.write("{}\t{}\n".format(key, value))
 
 def outputnostrain(outfile_name,community):
-    for i in community:
-        outfile_name.write("{}\n".format(i))
+    for sequence_id in community:
+        outfile_name.write("{}\n".format(sequence_id))
 
-def outputfasta():
-    pass
+def outputfasta(sequence_dict,community,editdistance_value):
+    with open('Community_ED{}.fasta'.format(editdistance_value),"w+") as fasta_file:
+        for sequence_id in community:
+            fasta_file.write(">{}\n{}\n".format(sequence_id,sequence_dict[sequence_id]))
+
+def subsetbynumber(community,number_strains):
+    community_list=[]
+    for line in community:
+        line=line.strip()
+        fields=line.split("\t") # split on tabs
+        community_list.append(fields[0])
+    new_community=random.sample(community_list,numberof strains)
+    with open ("Subsampled_community_strain#{}.txt".format(number_strains),"w+" as subsample_output):
+        for member in new_community:
+            subsample_output.write("{}\n".format(member))
 
 if __name__ == "__main__":
     main()

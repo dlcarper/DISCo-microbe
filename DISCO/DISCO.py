@@ -1,10 +1,11 @@
 import sys
 from Bio import SeqIO
 import re
-import editdistance
 import random
 import argparse
+import functools
 from itertools import combinations
+from collections import defaultdict
 
 def main():
     parser = argparse.ArgumentParser(prog="disco",add_help=False)
@@ -145,6 +146,7 @@ nucleiccodedicitonary={"N":set(["A","G","C","T","U"]),
 
 standardcode=["A","C","G","T","U","-"]
 
+@functools.lru_cache(maxsize=100000)
 def customeditdistance(seq1,seq2):
     edvalue=0
     for char1, char2 in zip(seq1,seq2):
@@ -173,21 +175,12 @@ def customeditdistance(seq1,seq2):
     return edvalue
 
 def editDistanceDictionary(sequence_dict):
-    dict_ed={}
-    for key,value in sequence_dict.items():
-        for key1,value1 in sequence_dict.items():
-            if key == key1:
-                continue
-            else:
-                edvalue=customeditdistance(value,value1)
-                if (key in dict_ed.keys()):
-                    if (edvalue in dict_ed[key].keys()):
-                        dict_ed[key][edvalue].append(key1)
-                    else:
-                        dict_ed[key][edvalue]=[key1]
-                else:
-                    dict_ed[key]={}
-                    dict_ed[key][edvalue]=[key1]
+    dict_ed = defaultdict(lambda: defaultdict(list))
+    for taxa in combinations(sequence_dict.keys(), 2):
+        edvalue=customeditdistance(sequence_dict[taxa[0]], sequence_dict[taxa[1]])
+        dict_ed[taxa[0]][edvalue].append(taxa[1])
+        dict_ed[taxa[1]][edvalue].append(taxa[0])
+
     return dict_ed
 
 

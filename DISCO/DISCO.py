@@ -1,11 +1,14 @@
 import sys
-from Bio import SeqIO
 import re
 import random
+import os
 import argparse
 import functools
+import operator
+import copy
 from itertools import combinations
 from collections import defaultdict
+from Bio import SeqIO
 
 def main():
     parser = argparse.ArgumentParser(prog="disco",add_help=False)
@@ -15,8 +18,8 @@ def main():
                      help="Edit distance value as interger")
     parser.add_argument("-o","--output",type=argparse.FileType("w"),dest="output",
                         help="output file name")
-    parser.add_argument("--seed",type=int,default=10,
-                        help="seed number for reproducibility, default is 10")
+    parser.add_argument("--seed",type=int,default=os.urandom(64),
+                        help="seed number for reproducibility")
 
 
     subparsers = parser.add_subparsers(help="sub-command help")
@@ -33,24 +36,22 @@ def main():
                         help="Output final community fasta file")
     parser_create.set_defaults(func=create)
 
-    #Correct subcommand
-    parser_correct=subparsers.add_parser("correct", parents=[parser],help="Module to correct sequencing errors based on the community and edit distance")
-    parser_correct.add_argument("--EDC",type=argparse.FileType("r"),dest="input_community",
-                        help="Input community with each identifier on its own line")
-    parser_correct.set_defaults(func=correct)
-
     #Subsample subcommand
     parser_subsample=subparsers.add_parser("subsample", parents=[parser],help="Module to subsample highly diverse community")
-    parser_subsample.add_argument("--strains",type=int, dest="strains",
+    parser_subsample.add_argument("--num-taxa", "-n", type=int, dest="num_taxa",
                     help="number of strains desired in final community")
-    parser_subsample.add_argument("--taxonomy",type=argparse.FileType("r"),dest="taxonomy",
-                        help="Tab seperated file with strain ids in first column and taxonomic rank in second")
-    parser_subsample.add_argument("--proportion",type=argparse.FileType("r"),dest="proportion",
+    parser_subsample.add_argument("--community", "-c", type=argparse.FileType("r"), 
+                                  help="Tab seperated file with taxa ids in the first column with metadata in additional columns")
+    parser_subsample.add_argument("--group-by", "-g", dest="group_by",
+                        help="Column name to group-by for proportion calculation. Default to second column")
+    parser_subsample.add_argument("--proportion", "-p", type=argparse.FileType("r"),dest="proportion",
                         help="File of the relative proportions of each taxonomic rank desired in final community")
+    parser_subsample.add_argument("--taxa-num-enforce", "-e", action="store_true", default=False, help="")
     parser_subsample.set_defaults(func=subsample)
 
     # Parse args
     args = parser.parse_args()
+    args.func(args)
 
 def create(args):
     random.seed(args.seed)
@@ -112,11 +113,112 @@ def create(args):
             print("Writing output file")
             outputnostrain(outputfile,community)
 
-def correct(args):
-    pass
-
 def subsample(args):
-    pass
+    #parser_subsample=subparsers.add_parser("subsample", parents=[parser],help="Module to subsample highly diverse community")
+    #parser_subsample.add_argument("--num-taxa", "-n", type=int, dest="num_taxa",
+    #                help="number of strains desired in final community")
+    #parser_subsample.add_argument("--community", "-c", type=argparse.FileType("r"), 
+    #                              help="Tab seperated file with taxa ids in the first column with metadata in additional columns")
+    #parser_subsample.add_argument("--group-by", "-g", dest="group_by",
+    #                    help="Column name to group-by for proportion calculation. Default to second column")
+    #parser_subsample.add_argument("--proportion", "-p", type=argparse.FileType("r"),dest="proportion",
+    #                    help="File of the relative proportions of each taxonomic rank desired in final community")
+    #parser_subsample.add_argument("--taxa-num-enforce", "-e", action="store_true", default=False, help="")
+    random.seed(args.seed)
+    community_list = [line.strip().split("\t") for line in args.community]
+    header = community_list[0]
+    community_list = community_list[1:]
+    if args.num_taxa and not args.proportion:
+        new_community=random.sample(community_list,args.num_taxa)
+        with open("Subsampled_community_taxa{}.txt".format(args.num_taxa),"w") as subsample_output:
+            print("\t".join(header), file=subsample_output)
+            for member in new_community:
+                print("{}".format("\t".join(member)), file=subsample_output)
+    elif args.proportion:
+        group_by_col = 1
+        if args.group_by:
+            if args.group_by in header:
+                group_by_col = header.index(args.group_by)
+            else:
+                print("Group by variable ({}) was not found in the header. The provided headings are {}".format(group_by, ",".join(header)), file=sys.stderr)
+                sys.exit()
+
+        grouping_dict = defaultdict(list)
+        for taxon in community_list:
+            grouping_dict[taxon[group_by_col]].append(taxon)
+        
+        goal_prop = defaultdict(float)
+        for prop in args.proportion: 
+            prop = prop.strip()
+            prop_split = prop.split("\t")
+            goal_prop[prop_split[0]] = float(prop_split[1])
+            if not prop_split[0] in grouping_dict:
+                sys.exit("{} not found in grouping column".format(prop[0]))
+                
+        if not isclose(1, sum(goal_prop.values())):
+            print("Proportions do not sum to 1", file=sys.stderr)
+
+        grouping_dict = {k: grouping_dict[k] for k in goal_prop}
+        #shuffle taxa
+        for group in grouping_dict:
+            random.shuffle(grouping_dict[group])
+        if not args.num_taxa:
+            current_total = sum(len(lst) for lst in grouping_dict.values())
+            current_props = {k: len(grouping_dict[k])/current_total for k in grouping_dict}
+            current_sse = 0
+            error_dict = defaultdict(float)
+            for group in current_props:
+                error_dict[group] = current_props[group] - goal_prop[group]
+                current_sse += (current_props[group] - goal_prop[group])**2
+            #loop to minimize sum of squared "errors"
+            while True:
+                print("sse: {}".format(current_sse))
+                #find group with maximum difference to goal proportion
+                max_error = max(error_dict.items(), key=operator.itemgetter(1))
+                print(max_error)
+                #if max diffrence is zero or negative can not improve and break
+                #or if max_error group only has one member (likely something is wrong)
+                if max_error[1] <= 0 or len(grouping_dict[max_error[0]]) == 1:
+                    print("hi")
+                    break
+                #Remove taxa from group with max error
+                test_grouping_dict = {}
+                for group in grouping_dict:
+                    if group == max_error[0]:
+                        temp_list = copy.deepcopy(grouping_dict[group])
+                        temp_list.pop()
+                        random.shuffle(temp_list)
+                        test_grouping_dict[group] = copy.deepcopy(temp_list)
+                    else:
+                        test_grouping_dict[group] = copy.deepcopy(grouping_dict[group])
+                #Recalculate SSE
+                temp_total = current_total - 1
+                temp_props = {k: len(test_grouping_dict[k])/temp_total for k in test_grouping_dict}
+                temp_sse = 0
+                temp_error_dict = defaultdict(list)
+                for group in temp_props:
+                    temp_error_dict[group] = temp_props[group] - goal_prop[group]
+                    temp_sse += (temp_props[group] - goal_prop[group])**2
+                #Test if new SSE is less then current and proceed accordingly
+                if temp_sse < current_sse:
+                    current_total -= 1
+                    current_props = temp_props.copy()
+                    current_sse = temp_sse
+                    error_dict = temp_error_dict.copy()
+                    grouping_dict[max_error[0]] = copy.deepcopy(test_grouping_dict[max_error[0]])
+                else:
+                    break
+            #print number of taxa
+            print("Number of Taxa: {}".format(current_total))
+            #print proportions
+            print("Optimized proportions")
+            for group in current_props:
+                print("{}:{:0.3f}".format(group, current_props[group]), file=sys.stderr)
+            with open("Subsampled_community_taxa_prop.txt", "w") as subsample_output:
+                print("\t".join(header), file=subsample_output)
+                for group in grouping_dict:
+                    for taxa in grouping_dict[group]:
+                        print("{}".format("\t".join(taxa)), file=subsample_output)
 
 def sequenceDictionary(input_alignment):
     sequence_dict={}
@@ -286,16 +388,8 @@ def outputfasta(sequence_dict,community,editdistance_value):
         for sequence_id in community:
             fasta_file.write(">{}\n{}\n".format(sequence_id,sequence_dict[sequence_id]))
 
-def subsetbynumber(community,number_strains):
-    community_list=[]
-    for line in community:
-        line=line.strip()
-        fields=line.split("\t") # split on tabs
-        community_list.append(fields[0])
-    new_community=random.sample(community_list,numberof strains)
-    with open ("Subsampled_community_strain#{}.txt".format(number_strains),"w+" as subsample_output):
-        for member in new_community:
-            subsample_output.write("{}\n".format(member))
+def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
+    return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
 if __name__ == "__main__":
     main()

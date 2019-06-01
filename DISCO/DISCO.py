@@ -46,7 +46,7 @@ def main():
                         help="Column name to group-by for proportion calculation. Default to second column")
     parser_subsample.add_argument("--proportion", "-p", type=argparse.FileType("r"),dest="proportion",
                         help="File of the relative proportions of each taxonomic rank desired in final community")
-    parser_subsample.add_argument("--taxa-num-enforce", "-e", action="store_true", default=False, help="")
+    parser_subsample.add_argument("--taxa-num-enforce", "-e", action="store_true", dest="num_enforce", default=False, help="")
     parser_subsample.set_defaults(func=subsample)
 
     # Parse args
@@ -124,10 +124,26 @@ def subsample(args):
     #parser_subsample.add_argument("--proportion", "-p", type=argparse.FileType("r"),dest="proportion",
     #                    help="File of the relative proportions of each taxonomic rank desired in final community")
     #parser_subsample.add_argument("--taxa-num-enforce", "-e", action="store_true", default=False, help="")
+    if args.num_enforce and not args.proportion:
+        print("ERROR: The --taxa-num-enforce option must be used with the --proportion option", file=sys.stderr)
+        sys.exit()
+    elif args.num_enforce and not args.num_taxa:
+        print("ERROR: The --taxa-num-enforce option must be used with the --num-taxa option", file=sys.stderr)
+        sys.exit()
+    elif not (args.num_taxa or args.proportion):
+        print("ERROR: Either the --num-taxa or --proportion option required", file=sys.stderr)
+        sys.exit()
+
+
     random.seed(args.seed)
     community_list = [line.strip().split("\t") for line in args.community]
     header = community_list[0]
     community_list = community_list[1:]
+    #Check to see num_taxa great or equal to current community size
+    if args.num_taxa and len(community_list) <= args.num_taxa:
+        print("ERROR: --num-taxa >= current community taxa count", file=sys.stderr)
+        sys.exit()
+
     if args.num_taxa and not args.proportion:
         new_community=random.sample(community_list,args.num_taxa)
         with open("Subsampled_community_taxa{}.txt".format(args.num_taxa),"w") as subsample_output:
@@ -140,7 +156,7 @@ def subsample(args):
             if args.group_by in header:
                 group_by_col = header.index(args.group_by)
             else:
-                print("Group by variable ({}) was not found in the header. The provided headings are {}".format(group_by, ",".join(header)), file=sys.stderr)
+                print("ERROR: Group by variable ({}) was not found in the header. The provided headings are {}".format(group_by, ",".join(header)), file=sys.stderr)
                 sys.exit()
 
         grouping_dict = defaultdict(list)
@@ -153,72 +169,109 @@ def subsample(args):
             prop_split = prop.split("\t")
             goal_prop[prop_split[0]] = float(prop_split[1])
             if not prop_split[0] in grouping_dict:
-                sys.exit("{} not found in grouping column".format(prop[0]))
+                print("ERROR: {} not found in grouping column".format(prop[0]), file=sys.stderr)
+                sys.exit()
                 
         if not isclose(1, sum(goal_prop.values())):
-            print("Proportions do not sum to 1", file=sys.stderr)
+            print("ERROR: Proportions do not sum to 1. Currently sum to {}".format(sum(goal_prop.values())), file=sys.stderr)
+            sys.exit()
 
         grouping_dict = {k: grouping_dict[k] for k in goal_prop}
         #shuffle taxa
         for group in grouping_dict:
             random.shuffle(grouping_dict[group])
-        if not args.num_taxa:
-            current_total = sum(len(lst) for lst in grouping_dict.values())
-            current_props = {k: len(grouping_dict[k])/current_total for k in grouping_dict}
-            current_sse = 0
-            error_dict = defaultdict(float)
-            for group in current_props:
-                error_dict[group] = current_props[group] - goal_prop[group]
-                current_sse += (current_props[group] - goal_prop[group])**2
-            #loop to minimize sum of squared "errors"
-            while True:
-                print("sse: {}".format(current_sse))
-                #find group with maximum difference to goal proportion
-                max_error = max(error_dict.items(), key=operator.itemgetter(1))
-                print(max_error)
-                #if max diffrence is zero or negative can not improve and break
-                #or if max_error group only has one member (likely something is wrong)
-                if max_error[1] <= 0 or len(grouping_dict[max_error[0]]) == 1:
-                    print("hi")
-                    break
-                #Remove taxa from group with max error
-                test_grouping_dict = {}
-                for group in grouping_dict:
-                    if group == max_error[0]:
-                        temp_list = copy.deepcopy(grouping_dict[group])
-                        temp_list.pop()
-                        random.shuffle(temp_list)
-                        test_grouping_dict[group] = copy.deepcopy(temp_list)
-                    else:
-                        test_grouping_dict[group] = copy.deepcopy(grouping_dict[group])
-                #Recalculate SSE
-                temp_total = current_total - 1
-                temp_props = {k: len(test_grouping_dict[k])/temp_total for k in test_grouping_dict}
-                temp_sse = 0
-                temp_error_dict = defaultdict(list)
-                for group in temp_props:
-                    temp_error_dict[group] = temp_props[group] - goal_prop[group]
-                    temp_sse += (temp_props[group] - goal_prop[group])**2
-                #Test if new SSE is less then current and proceed accordingly
-                if temp_sse < current_sse:
-                    current_total -= 1
-                    current_props = temp_props.copy()
-                    current_sse = temp_sse
-                    error_dict = temp_error_dict.copy()
-                    grouping_dict[max_error[0]] = copy.deepcopy(test_grouping_dict[max_error[0]])
+        current_total = sum(len(lst) for lst in grouping_dict.values())
+        current_props = {k: len(grouping_dict[k])/current_total for k in grouping_dict}
+        current_sse = 0
+        error_dict = defaultdict(float)
+        for group in current_props:
+            error_dict[group] = current_props[group] - goal_prop[group]
+            current_sse += (current_props[group] - goal_prop[group])**2
+
+        #loop to minimize sum of squared "errors"
+        while True:
+            #find group with maximum difference to goal proportion
+            max_error = max(error_dict.items(), key=operator.itemgetter(1))
+            #if max diffrence is zero or negative can not improve and break
+            #or if max_error group only has one member.
+            if max_error[1] <= 0 or len(grouping_dict[max_error[0]]) == 1:
+                break
+            #if args.num_enforce check to make sure removing doesn't drop taxa below args.num_taxa
+            if args.num_enforce and (current_total - 1) < args.num_taxa:
+                break
+            #Remove taxa from group with max error
+            test_grouping_dict = {}
+            for group in grouping_dict:
+                if group == max_error[0]:
+                    temp_list = copy.deepcopy(grouping_dict[group])
+                    temp_list.pop()
+                    random.shuffle(temp_list)
+                    test_grouping_dict[group] = copy.deepcopy(temp_list)
                 else:
+                    test_grouping_dict[group] = copy.deepcopy(grouping_dict[group])
+            #Recalculate SSE
+            temp_total = current_total - 1
+            temp_props = {k: len(test_grouping_dict[k])/temp_total for k in test_grouping_dict}
+            temp_sse = 0
+            temp_error_dict = defaultdict(list)
+            for group in temp_props:
+                temp_error_dict[group] = temp_props[group] - goal_prop[group]
+                temp_sse += (temp_props[group] - goal_prop[group])**2
+            #Test if new SSE is less then current and proceed accordingly
+            if temp_sse < current_sse:
+                current_total -= 1
+                current_props = temp_props.copy()
+                current_sse = temp_sse
+                error_dict = temp_error_dict.copy()
+                grouping_dict[max_error[0]] = copy.deepcopy(test_grouping_dict[max_error[0]])
+            else:
+                break
+            
+        if args.num_taxa and sum(len(lst) for lst in grouping_dict.values()) > args.num_taxa:
+            down_prop = 1 - (args.num_taxa/sum(len(lst) for lst in grouping_dict.values()))
+            for group in grouping_dict:
+                group_remove_num = round(len(grouping_dict[group])*down_prop)
+                #check if num remove will drop below num_taxa if num_enforce and adjust if needed
+                if args.num_enforce and (sum(len(lst) for lst in grouping_dict.values()) - group_remove_num) < args.num_taxa:
+                    group_remove_num -= args.num_taxa - (sum(len(lst) for lst in grouping_dict.values()) - group_remove_num)
+                if group_remove_num < 1 or len(grouping_dict[group]) == 1:
+                    continue
+                for _ in range(group_remove_num):
+                    if len(grouping_dict[group]) == 1:
+                        break
+                    else:
+                        grouping_dict[group].pop()
+                        current_total -= 1
+                if sum(len(lst) for lst in grouping_dict.values()) == args.num_taxa and args.num_enforce:
                     break
-            #print number of taxa
-            print("Number of Taxa: {}".format(current_total))
-            #print proportions
-            print("Optimized proportions")
-            for group in current_props:
-                print("{}:{:0.3f}".format(group, current_props[group]), file=sys.stderr)
-            with open("Subsampled_community_taxa_prop.txt", "w") as subsample_output:
-                print("\t".join(header), file=subsample_output)
-                for group in grouping_dict:
-                    for taxa in grouping_dict[group]:
-                        print("{}".format("\t".join(taxa)), file=subsample_output)
+            #final correction to make sure taxa <= num_taxa if not args.num_enforce
+            if sum(len(lst) for lst in grouping_dict.values()) > args.num_taxa:
+                diff = sum(len(lst) for lst in grouping_dict.values()) - args.num_taxa
+                while (diff > 0):
+                    group_counts = {k: len(grouping_dict[k]) for k in grouping_dict}
+                    group = sorted(grouping_counts.items(), key=operator.itemgetter(1), reverse=True)[0]
+                    if group[1] == 1:
+                        break
+                    else:
+                        grouping_dict[group[0]].pop()
+                        current_total -= 1
+                        diff -= 1
+
+
+
+        #Recalculate proportions after final correction
+        current_props = {k: len(grouping_dict[k])/current_total for k in grouping_dict}
+        #print number of taxa
+        print("Number of Taxa: {}".format(current_total))
+        #print proportions
+        print("Actualized proportions")
+        for group in current_props:
+            print("{}:{:0.4f}".format(group, current_props[group]), file=sys.stderr)
+        with open("Subsampled_community_taxa_prop.txt", "w") as subsample_output:
+            print("\t".join(header), file=subsample_output)
+            for group in grouping_dict:
+                for taxa in grouping_dict[group]:
+                    print("{}".format("\t".join(taxa)), file=subsample_output)
 
 def sequenceDictionary(input_alignment):
     sequence_dict={}

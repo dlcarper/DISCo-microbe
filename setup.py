@@ -16,14 +16,14 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
         long_description = f.read()
 
-setup(name = "pydisco",
+setup(name = "disco",
       setup_requires=['pytest-runner'],
       tests_require=['pytest'],
-      install_requires=['biopython', 'editdistance'],
-      packages = ["pydisco"],
+      install_requires=['biopython'],
+      packages = ["disco"],
       python_requires='~=3.5',
       entry_points = {
-          "console_scripts": ['disco = pydisco.pydisco:main']},
+          "console_scripts": ['disco = disco.disco:main']},
       version = version,
       author="Dana L. Carper, Travis J. Lawrence, Alyssa A. Carrell, Dale A. Pelletier, and David J. Weston",
       author_email="carperdl@ornl.gov",

@@ -12,7 +12,7 @@ from Bio import SeqIO
 from pydisco._version import __version__
 
 def main():
-    parser = argparse.ArgumentParser(prog="disco",add_help=False)
+    parser = argparse.ArgumentParser(prog="disco")
     parser.add_argument('-v', '--version', action='version', version="v{}".format(__version__))
     parser.add_argument("-i", "--input", type=argparse.FileType("r"),dest="input",
                       help="alignment file in fasta form")

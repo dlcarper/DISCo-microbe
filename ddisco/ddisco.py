@@ -341,18 +341,18 @@ def editDistanceDictionary(sequence_dict):
     return dict_ed
 
 
-def startcommunity(input_community_file):
+def startcommunity(input_community):
     starter_community=[]
     for line in input_community:
         line=line.strip()
         starter_community.append(line)
     return starter_community
 
-def validateCommunity(input_community_file,editdistance_value,edit_distance_dictionary):
+def validateCommunity(starter_community,editdistance_value,edit_distance_dictionary):
     community_validity=[]
     distances=list(range(editdistance_value)) #Create a list of numbers below edit distance value
     distances.append(editdistance_value)# append edit distance value to list
-    for pair in combinations(input_community_file,2):
+    for pair in combinations(starter_community,2):
         if any([pair[0] in edit_distance_dictionary[pair[1]][editdistance_value] for editdistance_value in distances if editdistance_value in edit_distance_dictionary[pair[1]]]):
             community_validity.append(pair[0])
             community_validity.append(pair[1])

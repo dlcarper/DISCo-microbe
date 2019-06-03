@@ -94,8 +94,8 @@ def create(args):
             print("The number of community members is {}".format(len(community)))
     else:
         sys.exit("ERROR:No edit distance given")
-    if (args.strain):
-        strain_info=straininfo(args.strain)
+    if (args.metadata):
+        strain_info=straininfo(args.metadata)
         if (args.output):
             print("Joining information")
             print("Writing output file")

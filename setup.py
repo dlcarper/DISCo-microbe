@@ -4,7 +4,7 @@ from setuptools import setup, Extension
 from codecs import open
 from os import path
 
-version_file = open("pydisco/_version.py", "r").read()
+version_file = open("disco/_version.py", "r").read()
 version_match = re.match(r"^__version__ = ['\"]([^'\"]*)['\"]", version_file)
 if (version_match):
     version = version_match.group(1)

@@ -21,6 +21,7 @@ setup(name = "pydisco",
       tests_require=['pytest'],
       install_requires=['biopython', 'editdistance'],
       packages = ["pydisco"],
+      python_requires='~=3.5'
       entry_points = {
           "console_scripts": ['disco = pydisco.pydisco:main']},
       version = version,

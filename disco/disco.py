@@ -9,7 +9,7 @@ import copy
 from itertools import combinations
 from collections import defaultdict
 from Bio import SeqIO
-from pydisco._version import __version__
+from disco._version import __version__
 
 def main():
     parser = argparse.ArgumentParser(prog="disco")

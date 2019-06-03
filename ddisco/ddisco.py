@@ -6,6 +6,7 @@ import argparse
 import functools
 import operator
 import copy
+import time
 from itertools import combinations
 from collections import defaultdict
 from Bio import SeqIO
@@ -36,6 +37,8 @@ def main():
                         help="information to combine with the community output, file must contain information in the first column and the identifiers in the last in tab deliminated form, with a header")
     parser_create.add_argument("--fasta",type=argparse.FileType("w"),dest="output_fasta",
                         help="Output final community fasta file")
+    parser_create.add_argument("--distance-dictionary",type=argparse.FileType("r"),
+                        help="Pre-calculated distance dictionary of seqeunces")
     parser_create.set_defaults(func=create)
 
     #Subsample subcommand
@@ -59,15 +62,27 @@ def create(args):
     random.seed(args.seed)
     if (args.input):
         if (args.trimPrimers):
-            print("Creating sequence dictionary")
-            sequence_dict=TrimPrimers(args.input,args.trimPrimers)
-            print("Creating edit distance dictionary")
-            dict_ed=editDistanceDictionary(sequence_dict)
+            if (args.distance-dictionary):
+                print("Creating sequence dictionary")
+                sequence_dict=TrimPrimers(args.input,args.trimPrimers)
+                print("Creating edit distance dictionary")
+                dict_ed=readEDdictionary(sequence_dict)
+            else:
+                print("Creating sequence dictionary")
+                sequence_dict=TrimPrimers(args.input,args.trimPrimers)
+                print("Creating edit distance dictionary")
+                dict_ed=editDistanceDictionary(sequence_dict)
         else:
-            print("Creating sequence dictionary")
-            sequence_dict=sequenceDictionary(args.input)
-            print("Creating edit distance dictionary")
-            dict_ed=editDistanceDictionary(sequence_dict)
+            if (args.distance-dictionary):
+                print("Creating sequence dictionary")
+                sequence_dict=sequenceDictionary(args.input)
+                print("Creating edit distance dictionary")
+                dict_ed=readEDdictionary(sequence_dict)
+            else:
+                print("Creating sequence dictionary")
+                sequence_dict=sequenceDictionary(args.input)
+                print("Creating edit distance dictionary")
+                dict_ed=editDistanceDictionary(sequence_dict)
     else:
         sys.exit("ERROR:No input file")
     if (args.edit_value):
@@ -114,6 +129,8 @@ def create(args):
             outputfile=outfile(args.edit_value)
             print("Writing output file")
             outputnostrain(outputfile,community)
+    if (args.fasta):
+        outputfasta(sequence_dict,community,args.edit_value)
 
 def subsample(args):
     #parser_subsample=subparsers.add_parser("subsample", parents=[parser],help="Module to subsample highly diverse community")
@@ -331,12 +348,46 @@ def customeditdistance(seq1,seq2):
                             edvalue+=1
     return edvalue
 
+timestr = time.strftime("%Y%m%d-%H%M%S")
+
+
 def editDistanceDictionary(sequence_dict):
     dict_ed = defaultdict(lambda: defaultdict(list))
-    for taxa in combinations(sequence_dict.keys(), 2):
-        edvalue=customeditdistance(sequence_dict[taxa[0]], sequence_dict[taxa[1]])
-        dict_ed[taxa[0]][edvalue].append(taxa[1])
-        dict_ed[taxa[1]][edvalue].append(taxa[0])
+    with open('distance_dictionary_{}.txt'.format(timestr),"w+") as dictionary_file:
+        for taxa in combinations(sequence_dict.keys(), 2):
+            edvalue=customeditdistance(sequence_dict[taxa[0]], sequence_dict[taxa[1]])
+            dict_ed[taxa[0]][edvalue].append(taxa[1])
+            dict_ed[taxa[1]][edvalue].append(taxa[0])
+            dictionary_file.write("{}\t{}\t{}\n".format(keys[0],keys[1],edvalue))
+
+    return dict_ed
+
+def readEDdictionary(input_ed_dict):
+    dict_ed = defaultdict(lambda: defaultdict(list))
+    comparisons_dict=defaultdict(list)
+    with open('distance_dictionary_{}.txt'.format(timestr),"w+") as dictionary_file:
+        for line in input_ed_dict:
+            line=line.strip()
+            dictionary_file.write("{}\n".format(line))
+            fields= line.split("\t")
+            dict_ed[fields[0]][fields[2]].append(fields[1])
+            dict_ed[fields[1]][fields[2]].append(fields[0])
+            comparisons_dict[fields[0]].append(fields[1])
+            comparisons_dict[fields[1]].append(fields[0])
+     
+         if comparisons_dict:
+             if keys[1] in comparisons_dict[keys[0]]:
+                 pass
+            else:
+                edvalue=customeditdistance(sequence_dict[keys[0]],sequence_dict[keys[1]])
+                dict_ed[keys[0]][edvalue].append(keys[1])
+                dict_ed[keys[1]][edvalue].append(keys[0])
+                dictionary_file.write("{}\t{}\t{}\n".format(keys[0],keys[1],edvalue))
+        else:
+            edvalue=customeditdistance(sequence_dict[keys[0]],sequence_dict[keys[1]])
+            dict_ed[keys[0]][edvalue].append(keys[1])
+            dict_ed[keys[1]][edvalue].append(keys[0])
+            dictionary_file.write("{}\t{}\t{}\n".format(keys[0],keys[1],edvalue))
 
     return dict_ed
 

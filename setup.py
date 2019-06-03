@@ -4,7 +4,7 @@ from setuptools import setup, Extension
 from codecs import open
 from os import path
 
-version_file = open("DISCO/_version.py", "r").read()
+version_file = open("pydisco/_version.py", "r").read()
 version_match = re.match(r"^__version__ = ['\"]([^'\"]*)['\"]", version_file)
 if (version_match):
     version = version_match.group(1)
@@ -16,13 +16,13 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
         long_description = f.read()
 
-setup(name = "DISCO",
+setup(name = "pydisco",
       setup_requires=['pytest-runner'],
       tests_require=['pytest'],
       install_requires=['biopython', 'editdistance'],
-      packages = ["DISCO"],
+      packages = ["pydisco"],
       entry_points = {
-          "console_scripts": ['DISCO = DISCO.DISCO:main']},
+          "console_scripts": ['disco = pydisco.pydisco:main']},
       version = version,
       author="Dana L. Carper, Travis J. Lawrence, Alyssa A. Carrell, Dale A. Pelletier, and David J. Weston",
       author_email="carperdl@ornl.gov",
@@ -37,7 +37,6 @@ setup(name = "DISCO",
                    'Natural Language :: English',
                    'Operating System :: MacOS :: MacOS X',
                    'Operating System :: POSIX :: Linux',
-                   'Programming Language :: Python :: 2.7',
                    'Programming Language :: Python :: 3.5',
                    'Programming Language :: Python :: 3.6',
                    'Programming Language :: Python :: 3.7',

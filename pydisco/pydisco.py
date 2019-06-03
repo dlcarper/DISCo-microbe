@@ -9,9 +9,11 @@ import copy
 from itertools import combinations
 from collections import defaultdict
 from Bio import SeqIO
+from pydisco._version import __version__
 
 def main():
     parser = argparse.ArgumentParser(prog="disco",add_help=False)
+    parser.add_argument('-v', '--version', action='version', version="v{}".format(__version__))
     parser.add_argument("-i", "--input", type=argparse.FileType("r"),dest="input",
                       help="alignment file in fasta form")
     parser.add_argument("--editdistance",type=int, dest="edit_value",

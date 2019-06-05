@@ -37,7 +37,7 @@ def main():
                         help="information to combine with the community output, file must contain information in the first column and the identifiers in the last in tab deliminated form, with a header")
     parser_create.add_argument("--fasta",type=argparse.FileType("w"),dest="output_fasta",
                         help="Output final community fasta file")
-    parser_create.add_argument("--distance-dictionary",type=argparse.FileType("r"),
+    parser_create.add_argument("--distance-dictionary",type=argparse.FileType("r"),dest="distance_dictionary",
                         help="Pre-calculated distance dictionary of seqeunces")
     parser_create.set_defaults(func=create)
 
@@ -45,7 +45,7 @@ def main():
     parser_subsample=subparsers.add_parser("subsample", parents=[parser],help="Module to subsample highly diverse community")
     parser_subsample.add_argument("--num-taxa", "-n", type=int, dest="num_taxa",
                     help="number of strains desired in final community")
-    parser_subsample.add_argument("--community", "-c", type=argparse.FileType("r"), 
+    parser_subsample.add_argument("--community", "-c", type=argparse.FileType("r"),
                                   help="Tab seperated file with taxa ids in the first column with metadata in additional columns")
     parser_subsample.add_argument("--group-by", "-g", dest="group_by",
                         help="Column name to group-by for proportion calculation. Default to second column")
@@ -62,7 +62,7 @@ def create(args):
     random.seed(args.seed)
     if (args.input):
         if (args.trimPrimers):
-            if (args.distance-dictionary):
+            if (args.distance_dictionary):
                 print("Creating sequence dictionary")
                 sequence_dict=TrimPrimers(args.input,args.trimPrimers)
                 print("Creating edit distance dictionary")
@@ -73,7 +73,7 @@ def create(args):
                 print("Creating edit distance dictionary")
                 dict_ed=editDistanceDictionary(sequence_dict)
         else:
-            if (args.distance-dictionary):
+            if (args.distance_dictionary):
                 print("Creating sequence dictionary")
                 sequence_dict=sequenceDictionary(args.input)
                 print("Creating edit distance dictionary")
@@ -129,7 +129,7 @@ def create(args):
             outputfile=outfile(args.edit_value)
             print("Writing output file")
             outputnostrain(outputfile,community)
-    if (args.fasta):
+    if (args.output_fasta):
         outputfasta(sequence_dict,community,args.edit_value)
 
 def subsample(args):
@@ -171,16 +171,16 @@ def subsample(args):
         grouping_dict = defaultdict(list)
         for taxon in community_list:
             grouping_dict[taxon[group_by_col]].append(taxon)
-        
+
         goal_prop = defaultdict(float)
-        for prop in args.proportion: 
+        for prop in args.proportion:
             prop = prop.strip()
             prop_split = prop.split("\t")
             goal_prop[prop_split[0]] = float(prop_split[1])
             if not prop_split[0] in grouping_dict:
                 print("ERROR: {} not found in grouping column".format(prop[0]), file=sys.stderr)
                 sys.exit()
-                
+
         if not isclose(1, sum(goal_prop.values())):
             print("ERROR: Proportions do not sum to 1. Currently sum to {}".format(sum(goal_prop.values())), file=sys.stderr)
             sys.exit()
@@ -234,7 +234,7 @@ def subsample(args):
                 current_sse = temp_sse
                 error_dict = temp_error_dict.copy()
                 grouping_dict[max_error[0]] = copy.deepcopy(test_grouping_dict[max_error[0]])
-            #if num_taxa continue even if temp_sse >= current_sse    
+            #if num_taxa continue even if temp_sse >= current_sse
             elif args.num_taxa and current_total > args.num_taxa:
                 current_total -= 1
                 current_props = temp_props.copy()
@@ -243,7 +243,7 @@ def subsample(args):
                 grouping_dict[max_error[0]] = copy.deepcopy(test_grouping_dict[max_error[0]])
             else:
                 break
-            
+
         #if args.num_taxa and sum(len(lst) for lst in grouping_dict.values()) > args.num_taxa:
         #    down_prop = 1 - (args.num_taxa/sum(len(lst) for lst in grouping_dict.values()))
         #    for group in grouping_dict:
@@ -356,8 +356,7 @@ def editDistanceDictionary(sequence_dict):
             edvalue=customeditdistance(sequence_dict[taxa[0]], sequence_dict[taxa[1]])
             dict_ed[taxa[0]][edvalue].append(taxa[1])
             dict_ed[taxa[1]][edvalue].append(taxa[0])
-            dictionary_file.write("{}\t{}\t{}\n".format(keys[0],keys[1],edvalue))
-
+            dictionary_file.write("{}\t{}\t{}\n".format(taxa[0],taxa[1],edvalue))
     return dict_ed
 
 def readEDdictionary(input_ed_dict):
@@ -372,7 +371,7 @@ def readEDdictionary(input_ed_dict):
             dict_ed[fields[1]][fields[2]].append(fields[0])
             comparisons_dict[fields[0]].append(fields[1])
             comparisons_dict[fields[1]].append(fields[0])
-     
+
         if comparisons_dict:
             if keys[1] in comparisons_dict[keys[0]]:
                 pass

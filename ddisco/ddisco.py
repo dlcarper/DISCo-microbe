@@ -133,16 +133,6 @@ def create(args):
         outputfasta(sequence_dict,community,args.edit_value)
 
 def subsample(args):
-    #parser_subsample=subparsers.add_parser("subsample", parents=[parser],help="Module to subsample highly diverse community")
-    #parser_subsample.add_argument("--num-taxa", "-n", type=int, dest="num_taxa",
-    #                help="number of strains desired in final community")
-    #parser_subsample.add_argument("--community", "-c", type=argparse.FileType("r"), 
-    #                              help="Tab seperated file with taxa ids in the first column with metadata in additional columns")
-    #parser_subsample.add_argument("--group-by", "-g", dest="group_by",
-    #                    help="Column name to group-by for proportion calculation. Default to second column")
-    #parser_subsample.add_argument("--proportion", "-p", type=argparse.FileType("r"),dest="proportion",
-    #                    help="File of the relative proportions of each taxonomic rank desired in final community")
-    #parser_subsample.add_argument("--taxa-num-enforce", "-e", action="store_true", default=False, help="")
     if args.num_enforce and not args.proportion:
         print("ERROR: The --taxa-num-enforce option must be used with the --proportion option", file=sys.stderr)
         sys.exit()
@@ -213,9 +203,9 @@ def subsample(args):
             max_error = max(error_dict.items(), key=operator.itemgetter(1))
             #if max diffrence is zero or negative can not improve and break
             #or if max_error group only has one member.
-            if max_error[1] <= 0 or len(grouping_dict[max_error[0]]) == 1:
+            if max_error[1] < 0 or len(grouping_dict[max_error[0]]) == 1:
                 break
-            #if args.num_enforce check to make sure removing doesn't drop taxa below args.num_taxa
+            #if args.num_enforce break early if below args.num_taxa
             if args.num_enforce and (current_total - 1) < args.num_taxa:
                 break
             #Remove taxa from group with max error
@@ -237,7 +227,15 @@ def subsample(args):
                 temp_error_dict[group] = temp_props[group] - goal_prop[group]
                 temp_sse += (temp_props[group] - goal_prop[group])**2
             #Test if new SSE is less then current and proceed accordingly
+            print("num_taxa:{} current:{}".format(args.num_taxa, current_total))
             if temp_sse < current_sse:
+                current_total -= 1
+                current_props = temp_props.copy()
+                current_sse = temp_sse
+                error_dict = temp_error_dict.copy()
+                grouping_dict[max_error[0]] = copy.deepcopy(test_grouping_dict[max_error[0]])
+            #if num_taxa continue even if temp_sse >= current_sse    
+            elif args.num_taxa and current_total > args.num_taxa:
                 current_total -= 1
                 current_props = temp_props.copy()
                 current_sse = temp_sse
@@ -246,43 +244,43 @@ def subsample(args):
             else:
                 break
             
-        if args.num_taxa and sum(len(lst) for lst in grouping_dict.values()) > args.num_taxa:
-            down_prop = 1 - (args.num_taxa/sum(len(lst) for lst in grouping_dict.values()))
-            for group in grouping_dict:
-                group_remove_num = round(len(grouping_dict[group])*down_prop)
-                #check if num remove will drop below num_taxa if num_enforce and adjust if needed
-                if args.num_enforce and (sum(len(lst) for lst in grouping_dict.values()) - group_remove_num) < args.num_taxa:
-                    group_remove_num -= args.num_taxa - (sum(len(lst) for lst in grouping_dict.values()) - group_remove_num)
-                if group_remove_num < 1 or len(grouping_dict[group]) == 1:
-                    continue
-                for _ in range(group_remove_num):
-                    if len(grouping_dict[group]) == 1:
-                        break
-                    else:
-                        grouping_dict[group].pop()
-                        current_total -= 1
-                if sum(len(lst) for lst in grouping_dict.values()) == args.num_taxa and args.num_enforce:
-                    break
-            #final correction to make sure taxa <= num_taxa if not args.num_enforce
-            if sum(len(lst) for lst in grouping_dict.values()) > args.num_taxa:
-                diff = sum(len(lst) for lst in grouping_dict.values()) - args.num_taxa
-                while (diff > 0):
-                    group_counts = {k: len(grouping_dict[k]) for k in grouping_dict}
-                    group = sorted(grouping_counts.items(), key=operator.itemgetter(1), reverse=True)[0]
-                    if group[1] == 1:
-                        break
-                    else:
-                        grouping_dict[group[0]].pop()
-                        current_total -= 1
-                        diff -= 1
+        #if args.num_taxa and sum(len(lst) for lst in grouping_dict.values()) > args.num_taxa:
+        #    down_prop = 1 - (args.num_taxa/sum(len(lst) for lst in grouping_dict.values()))
+        #    for group in grouping_dict:
+        #        group_remove_num = round(len(grouping_dict[group])*down_prop)
+        #        #check if num remove will drop below num_taxa if num_enforce and adjust if needed
+        #        if args.num_enforce and (sum(len(lst) for lst in grouping_dict.values()) - group_remove_num) < args.num_taxa:
+        #            group_remove_num -= args.num_taxa - (sum(len(lst) for lst in grouping_dict.values()) - group_remove_num)
+        #        if group_remove_num < 1 or len(grouping_dict[group]) == 1:
+        #            continue
+        #        for _ in range(group_remove_num):
+        #            if len(grouping_dict[group]) == 1:
+        #                break
+        #            else:
+        #                grouping_dict[group].pop()
+        #                current_total -= 1
+        #        if sum(len(lst) for lst in grouping_dict.values()) == args.num_taxa and args.num_enforce:
+        #            break
+        #    #final correction to make sure taxa <= num_taxa if not args.num_enforce
+        #    if sum(len(lst) for lst in grouping_dict.values()) > args.num_taxa:
+        #        diff = sum(len(lst) for lst in grouping_dict.values()) - args.num_taxa
+        #        while (diff > 0):
+        #            group_counts = {k: len(grouping_dict[k]) for k in grouping_dict}
+        #            group = sorted(grouping_counts.items(), key=operator.itemgetter(1), reverse=True)[0]
+        #            if group[1] == 1:
+        #                break
+        #            else:
+        #                grouping_dict[group[0]].pop()
+        #                current_total -= 1
+        #                diff -= 1
 
 
 
-        #Recalculate proportions after final correction
-        current_props = {k: len(grouping_dict[k])/current_total for k in grouping_dict}
-        #print number of taxa
-        print("Number of Taxa: {}".format(current_total))
-        #print proportions
+        ##Recalculate proportions after final correction
+        #current_props = {k: len(grouping_dict[k])/current_total for k in grouping_dict}
+        ##print number of taxa
+        #print("Number of Taxa: {}".format(current_total))
+        ##print proportions
         print("Actualized proportions")
         for group in current_props:
             print("{}:{:0.4f}".format(group, current_props[group]), file=sys.stderr)
@@ -375,9 +373,9 @@ def readEDdictionary(input_ed_dict):
             comparisons_dict[fields[0]].append(fields[1])
             comparisons_dict[fields[1]].append(fields[0])
      
-         if comparisons_dict:
-             if keys[1] in comparisons_dict[keys[0]]:
-                 pass
+        if comparisons_dict:
+            if keys[1] in comparisons_dict[keys[0]]:
+                pass
             else:
                 edvalue=customeditdistance(sequence_dict[keys[0]],sequence_dict[keys[1]])
                 dict_ed[keys[0]][edvalue].append(keys[1])

@@ -24,9 +24,9 @@ def main():
     #Create subcommand
     parser_create = subparsers.add_parser("create", parents=[parser],help='Module to create highly diverse community at specified edit distance')
     parser_create.add_argument("--i-alignment", type=argparse.FileType("r"),dest="input_alignment",
-                          help="Alignment file in fasta form")
+                          help="Alignment file in fasta form (REQUIRED)")
     parser_create.add_argument("--p-editdistance",type=int, dest="edit_value",
-                         help="Edit distance value as integer")
+                         help="Edit distance value as integer (REQUIRED)")
     parser_create.add_argument("--o-community-list",type=argparse.FileType("w"),dest="output",
                             help="Output file name")
     parser_create.add_argument("--p-include-strains",type=argparse.FileType("r"),dest="starter_community",
@@ -46,7 +46,7 @@ def main():
     parser_subsample.add_argument("--p-num-taxa", "-n", type=int, dest="num_taxa",
                     help="Number of strains desired in final community")
     parser_subsample.add_argument("--i-input-community",  type=argparse.FileType("r"),dest="community",
-                                  help="Tab seperated file with taxa ids in the first column with metadata in additional columns, output of create module")
+                                  help="Tab seperated file with taxa ids in the first column with metadata in additional columns, output of create module (REQUIRED)")
     parser_subsample.add_argument("--p-group-by", dest="group_by",
                         help="Column name to group-by for proportion calculation. Default to second column")
     parser_subsample.add_argument("--p-proportion", type=argparse.FileType("r"),dest="proportion",

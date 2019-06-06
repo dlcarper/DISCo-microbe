@@ -15,43 +15,43 @@ from ddisco._version import __version__
 def main():
     parser = argparse.ArgumentParser(prog="ddisco", add_help=False)
     parser.add_argument('-v', '--version', action='version', version="v{}".format(__version__))
-    parser.add_argument("-i", "--input", type=argparse.FileType("r"),dest="input",
-                      help="alignment file in fasta form")
-    parser.add_argument("--editdistance",type=int, dest="edit_value",
-                     help="Edit distance value as interger")
-    parser.add_argument("-o","--output",type=argparse.FileType("w"),dest="output",
-                        help="output file name")
-    parser.add_argument("--seed",type=int,default=os.urandom(64),
-                        help="seed number for reproducibility")
+    parser.add_argument("--p-seed",type=int,default=os.urandom(64),dest="seed",
+                        help="Seed number as integer. This allows reproducibility of output community. Default to random seed number.")
 
 
     subparsers = parser.add_subparsers(help="sub-command help")
 
     #Create subcommand
     parser_create = subparsers.add_parser("create", parents=[parser],help='Module to create highly diverse community at specified edit distance')
-    parser_create.add_argument("--community",type=argparse.FileType("r"),dest="starter_community",
-                        help="Starting community with each identifier on its own line")
-    parser_create.add_argument("--trimPrimers",type=int,dest="trimPrimers",
-                        help="length of primers to trim")
-    parser_create.add_argument("--metadata",type=argparse.FileType("r"),
-                        help="information to combine with the community output, file must contain information in the first column and the identifiers in the last in tab deliminated form, with a header")
-    parser_create.add_argument("--fasta",type=argparse.FileType("w"),dest="output_fasta",
-                        help="Output final community fasta file")
-    parser_create.add_argument("--distance-dictionary",type=argparse.FileType("r"),dest="distance_dictionary",
+    parser_create.add_argument("--i-alignment", type=argparse.FileType("r"),dest="input_alignment",
+                          help="Alignment file in fasta form")
+    parser_create.add_argument("--p-editdistance",type=int, dest="edit_value",
+                         help="Edit distance value as integer")
+    parser_create.add_argument("--o-community-list",type=argparse.FileType("w"),dest="output",
+                            help="Output file name")
+    parser_create.add_argument("--p-include-strains",type=argparse.FileType("r"),dest="starter_community",
+                        help="List of strains the final community must include with each identifier on its own line")
+    parser_create.add_argument("--p-trim-primers",type=int,dest="trimPrimers",
+                        help="Length of primers to trim from initial alignment")
+    parser_create.add_argument("--i-metadata",type=argparse.FileType("r"),dest="metadata",
+                        help="Information to combine with the community output. File must contain information in the first column and the identifiers in the last in tab delimited form, with a header")
+    parser_create.add_argument("--o-fasta",type=argparse.FileType("w"),dest="output_fasta",
+                        help="Output final community sequences in fasta format")
+    parser_create.add_argument("--p-distance-dictionary",type=argparse.FileType("r"),dest="distance_dictionary",
                         help="Pre-calculated distance dictionary of seqeunces")
     parser_create.set_defaults(func=create)
 
     #Subsample subcommand
     parser_subsample=subparsers.add_parser("subsample", parents=[parser],help="Module to subsample highly diverse community")
-    parser_subsample.add_argument("--num-taxa", "-n", type=int, dest="num_taxa",
-                    help="number of strains desired in final community")
-    parser_subsample.add_argument("--community", "-c", type=argparse.FileType("r"),
-                                  help="Tab seperated file with taxa ids in the first column with metadata in additional columns")
-    parser_subsample.add_argument("--group-by", "-g", dest="group_by",
+    parser_subsample.add_argument("--p-num-taxa", "-n", type=int, dest="num_taxa",
+                    help="Number of strains desired in final community")
+    parser_subsample.add_argument("--i-input-community",  type=argparse.FileType("r"),dest="community",
+                                  help="Tab seperated file with taxa ids in the first column with metadata in additional columns, output of create module")
+    parser_subsample.add_argument("--p-group-by", dest="group_by",
                         help="Column name to group-by for proportion calculation. Default to second column")
-    parser_subsample.add_argument("--proportion", "-p", type=argparse.FileType("r"),dest="proportion",
+    parser_subsample.add_argument("--p-proportion", type=argparse.FileType("r"),dest="proportion",
                         help="File of the relative proportions of each taxonomic rank desired in final community")
-    parser_subsample.add_argument("--taxa-num-enforce", "-e", action="store_true", dest="num_enforce", default=False, help="")
+    parser_subsample.add_argument("--p-taxa-num-enforce", action="store_true", dest="num_enforce", default=False, help="Enforce number of strains over the proportions")
     parser_subsample.set_defaults(func=subsample)
 
     # Parse args
@@ -60,27 +60,27 @@ def main():
 
 def create(args):
     random.seed(args.seed)
-    if (args.input):
+    if (args.input_alignment):
         if (args.trimPrimers):
             if (args.distance_dictionary):
                 print("Creating sequence dictionary")
-                sequence_dict=TrimPrimers(args.input,args.trimPrimers)
+                sequence_dict=TrimPrimers(args.input_alignment,args.trimPrimers)
                 print("Creating edit distance dictionary")
                 dict_ed=readEDdictionary(sequence_dict)
             else:
                 print("Creating sequence dictionary")
-                sequence_dict=TrimPrimers(args.input,args.trimPrimers)
+                sequence_dict=TrimPrimers(args.input_alignment,args.trimPrimers)
                 print("Creating edit distance dictionary")
                 dict_ed=editDistanceDictionary(sequence_dict)
         else:
             if (args.distance_dictionary):
                 print("Creating sequence dictionary")
-                sequence_dict=sequenceDictionary(args.input)
+                sequence_dict=sequenceDictionary(args.input_alignment)
                 print("Creating edit distance dictionary")
                 dict_ed=readEDdictionary(sequence_dict)
             else:
                 print("Creating sequence dictionary")
-                sequence_dict=sequenceDictionary(args.input)
+                sequence_dict=sequenceDictionary(args.input_alignment)
                 print("Creating edit distance dictionary")
                 dict_ed=editDistanceDictionary(sequence_dict)
     else:

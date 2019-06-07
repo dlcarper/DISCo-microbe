@@ -10,11 +10,11 @@ import time
 from itertools import combinations
 from collections import defaultdict
 from Bio import SeqIO
-#from ddisco._version import __version__
+from ddisco._version import __version__
 
 def main():
     parser = argparse.ArgumentParser(prog="ddisco", add_help=False)
-    #parser.add_argument('-v', '--version', action='version', version="v{}".format(__version__))
+    parser.add_argument('-v', '--version', action='version', version="v{}".format(__version__))
     parser.add_argument("--p-seed",type=int,default=os.urandom(64),dest="seed",
                         help="Seed number as integer. This allows reproducibility of output community. Default to random seed number.")
     subparsers = parser.add_subparsers(help="sub-command help")

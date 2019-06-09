@@ -244,43 +244,6 @@ def subsample(args):
             else:
                 break
             
-        #if args.num_taxa and sum(len(lst) for lst in grouping_dict.values()) > args.num_taxa:
-        #    down_prop = 1 - (args.num_taxa/sum(len(lst) for lst in grouping_dict.values()))
-        #    for group in grouping_dict:
-        #        group_remove_num = round(len(grouping_dict[group])*down_prop)
-        #        #check if num remove will drop below num_taxa if num_enforce and adjust if needed
-        #        if args.num_enforce and (sum(len(lst) for lst in grouping_dict.values()) - group_remove_num) < args.num_taxa:
-        #            group_remove_num -= args.num_taxa - (sum(len(lst) for lst in grouping_dict.values()) - group_remove_num)
-        #        if group_remove_num < 1 or len(grouping_dict[group]) == 1:
-        #            continue
-        #        for _ in range(group_remove_num):
-        #            if len(grouping_dict[group]) == 1:
-        #                break
-        #            else:
-        #                grouping_dict[group].pop()
-        #                current_total -= 1
-        #        if sum(len(lst) for lst in grouping_dict.values()) == args.num_taxa and args.num_enforce:
-        #            break
-        #    #final correction to make sure taxa <= num_taxa if not args.num_enforce
-        #    if sum(len(lst) for lst in grouping_dict.values()) > args.num_taxa:
-        #        diff = sum(len(lst) for lst in grouping_dict.values()) - args.num_taxa
-        #        while (diff > 0):
-        #            group_counts = {k: len(grouping_dict[k]) for k in grouping_dict}
-        #            group = sorted(grouping_counts.items(), key=operator.itemgetter(1), reverse=True)[0]
-        #            if group[1] == 1:
-        #                break
-        #            else:
-        #                grouping_dict[group[0]].pop()
-        #                current_total -= 1
-        #                diff -= 1
-
-
-
-        ##Recalculate proportions after final correction
-        #current_props = {k: len(grouping_dict[k])/current_total for k in grouping_dict}
-        ##print number of taxa
-        #print("Number of Taxa: {}".format(current_total))
-        ##print proportions
         print("Actualized proportions")
         for group in current_props:
             print("{}:{:0.4f}".format(group, current_props[group]), file=sys.stderr)

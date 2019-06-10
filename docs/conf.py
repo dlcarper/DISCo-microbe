@@ -17,7 +17,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'DISCo'
+project = 'DISCo-microbe'
 copyright = '2019, Dana L. Carper, Travis J. Lawrence, Alyssa A. Carrell, Dale A. Pelletier, David J. Weston'
 author = 'Dana L. Carper, Travis J. Lawrence, Alyssa A. Carrell, Dale A. Pelletier, David J. Weston'
 

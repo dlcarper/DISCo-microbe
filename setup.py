@@ -4,7 +4,7 @@ from setuptools import setup, Extension
 from codecs import open
 from os import path
 
-version_file = open("ddisco/_version.py", "r").read()
+version_file = open("disco_microbe/_version.py", "r").read()
 version_match = re.match(r"^__version__ = ['\"]([^'\"]*)['\"]", version_file)
 if (version_match):
     version = version_match.group(1)
@@ -16,14 +16,14 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
         long_description = f.read()
 
-setup(name = "ddisco",
+setup(name = "disco-microbe",
       setup_requires=['pytest-runner'],
       tests_require=['pytest'],
       install_requires=['biopython'],
-      packages = ["ddisco"],
+      packages = ["disco_microbe"],
       python_requires='~=3.5',
       entry_points = {
-          "console_scripts": ['ddisco = ddisco.ddisco:main']},
+          "console_scripts": ['disco = disco_microbe.disco_microbe:main']},
       version = version,
       author="Dana L. Carper, Travis J. Lawrence, Alyssa A. Carrell, Dale A. Pelletier, and David J. Weston",
       author_email="carperdl@ornl.gov",

@@ -10,10 +10,10 @@ import time
 from itertools import combinations
 from collections import defaultdict
 from Bio import SeqIO
-from ddisco._version import __version__
+from disco_microbe._version import __version__
 
 def main():
-    parser = argparse.ArgumentParser(prog="ddisco", add_help=False)
+    parser = argparse.ArgumentParser(prog="disco", add_help=False)
     parser.add_argument('-v', '--version', action='version', version="v{}".format(__version__))
     parser.add_argument("--p-seed",type=int,default=os.urandom(64),dest="seed",
                         help="Seed number as integer. This allows reproducibility of output community. Default to random seed number.")
@@ -21,13 +21,14 @@ def main():
 
     #Create subcommand
     parser_create = subparsers.add_parser("create", parents=[parser],help='Module to create highly diverse community at specified edit distance')
-    parser_create.add_argument("--i-alignment", type=argparse.FileType("r"),dest="input_alignment",required=True,
+    create_required = parser_create.add_argument_group("required named arguments")
+    create_required.add_argument("--i-alignment", type=argparse.FileType("r"),dest="input_alignment",required=True,
                           help="Alignment file in fasta form (REQUIRED)")
     parser_create.add_argument("--i-metadata",type=argparse.FileType("r"),dest="metadata",
                         help="Information to combine with the community output. File must contain information in the first column and the identifiers in the last in tab delimited form, with a header")
     parser_create.add_argument("--i-distance-dictionary",type=argparse.FileType("r"),dest="distance_dictionary",
                         help="Pre-calculated distance dictionary of sequences")
-    parser_create.add_argument("--p-editdistance",type=int, dest="edit_value",required=True,
+    create_required.add_argument("--p-editdistance",type=int, dest="edit_value",required=True,
                          help="Edit distance value as integer (REQUIRED)")
     parser_create.add_argument("--p-include-strains",type=argparse.FileType("r"),dest="starter_community",
                         help="List of strains the final community must include with each identifier on its own line")
@@ -42,7 +43,8 @@ def main():
 
     #Subsample subcommand
     parser_subsample=subparsers.add_parser("subsample", parents=[parser],help="Module to subsample highly diverse community")
-    parser_subsample.add_argument("--i-input-community",  type=argparse.FileType("r"),dest="community",required=True,
+    subsample_required = parser_subsample.add_argument_group("required named arguments")
+    subsample_required.add_argument("--i-input-community",  type=argparse.FileType("r"),dest="community",required=True,
                     help="Tab seperated file with taxa ids in the first column with metadata in additional columns, output of create module (REQUIRED)")
     parser_subsample.add_argument("--p-num-taxa", "-n", type=int, dest="num_taxa",
                     help="Number of strains desired in final community")
@@ -54,8 +56,12 @@ def main():
     parser_subsample.set_defaults(func=subsample)
 
     # Parse args
-    args = parser.parse_args()
-    args.func(args)
+    if len(sys.argv) == 1 or sys.argv[1] == "-h" or sys.argv[1] == "--help":
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+    else:
+        args = parser.parse_args()
+        args.func(args)
 
 def create(args):
     random.seed(args.seed)
@@ -83,7 +89,8 @@ def create(args):
                 print("Creating edit distance dictionary")
                 dict_ed=editDistanceDictionary(sequence_dict)
     else:
-        sys.exit("ERROR:No input file")
+        print("ERROR:No input file", file=sys.stderr)
+        sys.exit(1)
     if (args.edit_value):
         if (args.starter_community):
             starter_community=startcommunity(args.starter_community)
@@ -93,7 +100,7 @@ def create(args):
                 it = iter(community_validity)
                 for x in it:
                     print ("{},{}".format(x, next(it)))
-                sys.exit()
+                sys.exit(1)
             else:
                 print("Community is valid")
                 community=[]
@@ -107,7 +114,8 @@ def create(args):
             community=loopforCommunity(community,args.edit_value,dict_ed)
             print("The number of community members is {}".format(len(community)))
     else:
-        sys.exit("ERROR:No edit distance given")
+        print("ERROR:No edit distance given", file=sys.stderr)
+        sys.exit(1)
     if (args.metadata):
         strain_info=straininfo(args.metadata)
         if (args.output):
@@ -134,13 +142,13 @@ def create(args):
 def subsample(args):
     if args.num_enforce and not args.proportion:
         print("ERROR: The --taxa-num-enforce option must be used with the --proportion option", file=sys.stderr)
-        sys.exit()
+        sys.exit(1)
     elif args.num_enforce and not args.num_taxa:
         print("ERROR: The --taxa-num-enforce option must be used with the --num-taxa option", file=sys.stderr)
-        sys.exit()
+        sys.exit(1)
     elif not (args.num_taxa or args.proportion):
         print("ERROR: Either the --num-taxa or --proportion option required", file=sys.stderr)
-        sys.exit()
+        sys.exit(1)
 
 
     random.seed(args.seed)
@@ -150,7 +158,7 @@ def subsample(args):
     #Check to see num_taxa great or equal to current community size
     if args.num_taxa and len(community_list) <= args.num_taxa:
         print("ERROR: --num-taxa >= current community taxa count", file=sys.stderr)
-        sys.exit()
+        sys.exit(1)
 
     if args.num_taxa and not args.proportion:
         new_community=random.sample(community_list,args.num_taxa)
@@ -165,7 +173,7 @@ def subsample(args):
                 group_by_col = header.index(args.group_by)
             else:
                 print("ERROR: Group by variable ({}) was not found in the header. The provided headings are {}".format(group_by, ",".join(header)), file=sys.stderr)
-                sys.exit()
+                sys.exit(1)
 
         grouping_dict = defaultdict(list)
         for taxon in community_list:
@@ -178,11 +186,11 @@ def subsample(args):
             goal_prop[prop_split[0]] = float(prop_split[1])
             if not prop_split[0] in grouping_dict:
                 print("ERROR: {} not found in grouping column".format(prop[0]), file=sys.stderr)
-                sys.exit()
+                sys.exit(1)
 
         if not isclose(1, sum(goal_prop.values())):
             print("ERROR: Proportions do not sum to 1. Currently sum to {}".format(sum(goal_prop.values())), file=sys.stderr)
-            sys.exit()
+            sys.exit(1)
 
         grouping_dict = {k: grouping_dict[k] for k in goal_prop}
         #shuffle taxa

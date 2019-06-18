@@ -263,7 +263,7 @@ def subsample(args):
 def sequenceDictionary(input_alignment):
     sequence_dict={}
     for record in SeqIO.parse(input_alignment, "fasta"):
-        sequence_dict[record.id]=str.upper(record.seq)
+        sequence_dict[record.id]=str(record.seq).upper()
     return sequence_dict
 
 def TrimPrimers(input_alignment,primer_length):

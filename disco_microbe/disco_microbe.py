@@ -33,8 +33,6 @@ def main():
                          help="Edit distance value as integer (REQUIRED)")
     parser_create.add_argument("--p-include-strains",type=argparse.FileType("r"),dest="starter_community",
                         help="List of strains the final community must include with each identifier on its own line")
-    parser_create.add_argument("--p-trim-primers",type=int,dest="trimPrimers",
-                        help="Length of primers to trim from initial alignment")
     parser_create.add_argument("--o-community-list",type=argparse.FileType("w"),dest="output",
                             help="Output file name")
     parser_create.add_argument("--o-fasta",type=argparse.FileType("w"),dest="output_fasta",
@@ -67,36 +65,20 @@ def main():
 def create(args):
     random.seed(args.seed)
     if (args.input_alignment):
-        if (args.trimPrimers):
-            if (args.distance_dictionary):
-                print("Creating sequence dictionary")
-                sequence_dict=TrimPrimers(args.input_alignment,args.trimPrimers)
-                print("Creating distance dictionary by performing {} calculations".format(math.factorial(len(sequence_dict))/(2*math.factorial(len(sequence_dict)-2))))
-                dict_ed=readEDdictionary(sequence_dict,args.distance_dictionary)
-                duplist=duplicatelist(dict_ed)
-                print("The input has {} unique sequences".format((len(dict_ed)-len(duplist))))
-            else:
-                print("Creating sequence dictionary")
-                sequence_dict=TrimPrimers(args.input_alignment,args.trimPrimers)
-                print("Creating distance dictionary by performing {} calculations".format(math.factorial(len(sequence_dict))/(2*math.factorial(len(sequence_dict)-2))))
-                dict_ed=editDistanceDictionary(sequence_dict)
-                duplist=duplicatelist(dict_ed)
-                print("The input has {} unique sequences".format((len(dict_ed)-len(duplist))))
+        if (args.distance_dictionary):
+            print("Creating sequence dictionary")
+            sequence_dict=sequenceDictionary(args.input_alignment)
+            print("Creating distance dictionary by performing {} calculations".format(math.factorial(len(sequence_dict))/(2*math.factorial(len(sequence_dict)-2))))
+            dict_ed=readEDdictionary(sequence_dict,args.distance_dictionary)
+            duplist=duplicatelist(dict_ed)
+            print("The input has {} unique sequences".format((len(dict_ed)-len(duplist))))
         else:
-            if (args.distance_dictionary):
-                print("Creating sequence dictionary")
-                sequence_dict=sequenceDictionary(args.input_alignment)
-                print("Creating distance dictionary by performing {} calculations".format(math.factorial(len(sequence_dict))/(2*math.factorial(len(sequence_dict)-2))))
-                dict_ed=readEDdictionary(sequence_dict,args.distance_dictionary)
-                duplist=duplicatelist(dict_ed)
-                print("The input has {} unique sequences".format((len(dict_ed)-len(duplist))))
-            else:
-                print("Creating sequence dictionary")
-                sequence_dict=sequenceDictionary(args.input_alignment)
-                print("Creating distance dictionary by performing {} calculations".format(math.factorial(len(sequence_dict))/(2*math.factorial(len(sequence_dict)-2))))
-                dict_ed=editDistanceDictionary(sequence_dict)
-                duplist=duplicatelist(dict_ed)
-                print("The input has {} unique sequences".format((len(dict_ed)-len(duplist))))
+            print("Creating sequence dictionary")
+            sequence_dict=sequenceDictionary(args.input_alignment)
+            print("Creating distance dictionary by performing {} calculations".format(math.factorial(len(sequence_dict))/(2*math.factorial(len(sequence_dict)-2))))
+            dict_ed=editDistanceDictionary(sequence_dict)
+            duplist=duplicatelist(dict_ed)
+            print("The input has {} unique sequences".format((len(dict_ed)-len(duplist))))
     else:
         print("ERROR:No input file", file=sys.stderr)
         sys.exit(1)
@@ -273,14 +255,6 @@ def sequenceDictionary(input_alignment):
     sequence_dict={}
     for record in SeqIO.parse(input_alignment, "fasta"):
         sequence_dict[record.id]=str(record.seq).upper()
-    return sequence_dict
-
-def TrimPrimers(input_alignment,primer_length):
-    sequence_dict={}
-    for record in SeqIO.parse(input_alignment, "fasta"):
-        record.seq=record.seq[primer_length:]
-        record.seq=record.seq[:-primer_length]
-        sequence_dict[record.id]=str(record.seq)
     return sequence_dict
 
 nucleiccodedicitonary={"N":set(["A","G","C","T","U"]),

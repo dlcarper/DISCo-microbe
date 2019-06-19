@@ -7,6 +7,7 @@ import functools
 import operator
 import copy
 import time
+import math
 from itertools import combinations
 from collections import defaultdict
 from Bio import SeqIO
@@ -25,7 +26,7 @@ def main():
     create_required.add_argument("--i-alignment", type=argparse.FileType("r"),dest="input_alignment",required=True,
                           help="Alignment file in fasta form (REQUIRED)")
     parser_create.add_argument("--i-metadata",type=argparse.FileType("r"),dest="metadata",
-                        help="Information to combine with the community output. File must contain information in the first column and the identifiers in the last in tab delimited form, with a header")
+                        help="Information to combine with the community output. File must contain a header, be tab-delimited, and contain the identifiers in the first column")
     parser_create.add_argument("--i-distance-dictionary",type=argparse.FileType("r"),dest="distance_dictionary",
                         help="Pre-calculated distance dictionary of sequences")
     create_required.add_argument("--p-editdistance",type=int, dest="edit_value",required=True,
@@ -70,24 +71,32 @@ def create(args):
             if (args.distance_dictionary):
                 print("Creating sequence dictionary")
                 sequence_dict=TrimPrimers(args.input_alignment,args.trimPrimers)
-                print("Creating edit distance dictionary")
-                dict_ed=readEDdictionary(sequence_dict)
+                print("Creating distance dictionary by performing {} calculations".format(math.factorial(len(sequence_dict))/(2*math.factorial(len(sequence_dict)-2))))
+                dict_ed=readEDdictionary(sequence_dict,args.distance_dictionary)
+                duplist=duplicatelist(dict_ed)
+                print("The input has {} unique sequences".format((len(dict_ed)-len(duplist))))
             else:
                 print("Creating sequence dictionary")
                 sequence_dict=TrimPrimers(args.input_alignment,args.trimPrimers)
-                print("Creating edit distance dictionary")
+                print("Creating distance dictionary by performing {} calculations".format(math.factorial(len(sequence_dict))/(2*math.factorial(len(sequence_dict)-2))))
                 dict_ed=editDistanceDictionary(sequence_dict)
+                duplist=duplicatelist(dict_ed)
+                print("The input has {} unique sequences".format((len(dict_ed)-len(duplist))))
         else:
             if (args.distance_dictionary):
                 print("Creating sequence dictionary")
                 sequence_dict=sequenceDictionary(args.input_alignment)
-                print("Creating edit distance dictionary")
-                dict_ed=readEDdictionary(sequence_dict)
+                print("Creating distance dictionary by performing {} calculations".format(math.factorial(len(sequence_dict))/(2*math.factorial(len(sequence_dict)-2))))
+                dict_ed=readEDdictionary(sequence_dict,args.distance_dictionary)
+                duplist=duplicatelist(dict_ed)
+                print("The input has {} unique sequences".format((len(dict_ed)-len(duplist))))
             else:
                 print("Creating sequence dictionary")
                 sequence_dict=sequenceDictionary(args.input_alignment)
-                print("Creating edit distance dictionary")
+                print("Creating distance dictionary by performing {} calculations".format(math.factorial(len(sequence_dict))/(2*math.factorial(len(sequence_dict)-2))))
                 dict_ed=editDistanceDictionary(sequence_dict)
+                duplist=duplicatelist(dict_ed)
+                print("The input has {} unique sequences".format((len(dict_ed)-len(duplist))))
     else:
         print("ERROR:No input file", file=sys.stderr)
         sys.exit(1)
@@ -329,7 +338,7 @@ def editDistanceDictionary(sequence_dict):
             dictionary_file.write("{}\t{}\t{}\n".format(taxa[0],taxa[1],edvalue))
     return dict_ed
 
-def readEDdictionary(input_ed_dict):
+def readEDdictionary(sequence_dict,input_ed_dict):
     dict_ed = defaultdict(lambda: defaultdict(list))
     comparisons_dict=defaultdict(list)
     with open('distance_dictionary_{}.txt'.format(timestr),"w+") as dictionary_file:
@@ -341,7 +350,7 @@ def readEDdictionary(input_ed_dict):
             dict_ed[fields[1]][fields[2]].append(fields[0])
             comparisons_dict[fields[0]].append(fields[1])
             comparisons_dict[fields[1]].append(fields[0])
-
+    for keys in combinations(sequence_dict.keys(), 2):
         if comparisons_dict:
             if keys[1] in comparisons_dict[keys[0]]:
                 pass
@@ -358,6 +367,14 @@ def readEDdictionary(input_ed_dict):
 
     return dict_ed
 
+def duplicatelist(dict_ed):
+    duplist=[]
+    for key in dict_ed:
+        if key in duplist:
+            continue
+        else:
+            duplist.extend(dict_ed[key][0])
+    return duplist
 
 def startcommunity(input_community):
     starter_community=[]
@@ -399,11 +416,13 @@ def loopforCommunity(community,editdistance_value,edit_distance_dictionary):
     not_community=[]#list of members to not put in community
     distances=list(range(editdistance_value)) #Create a list of numbers below edit distance value
     distances.append(editdistance_value)# append edit distance value to list
-    while True:# while there are memebers to loop through
+    while True:# while there are members to loop through
         smallest=500
         smallest_sequence=""
         EDnot_in_dict=[]
-        for key in edit_distance_dictionary:# loop through keys agains
+        shuffle_keys=list(edit_distance_dictionary.keys())
+        random.shuffle(shuffle_keys)
+        for key in shuffle_keys:# loop through keys agains
             member = False # set to false to keep looping
             if key in community:#check if key is already in the communitiy
                 continue #if key in community skip
@@ -438,7 +457,7 @@ def straininfo(metadata):
         line=line.strip()
         if (not i == 0): # if line is not the 1st (so the header)
             fields=line.split("\t") # split on tabs
-            strain_info[fields[-1]]=fields[0]
+            strain_info[fields[0]]=fields[1:]
     return strain_info
 
 def outfile(editdistance_value):
@@ -448,7 +467,7 @@ def outfile(editdistance_value):
 def joinstrain(metadata,community,outfile_name):
     for key, value in metadata.items(): # loop through keys and values in strain dictionary
         if key in community: # if that key is found in community
-            outfile_name.write("{}\t{}\n".format(key, value))
+            outfile_name.write("{}\t{}\n".format(key, "\t".join(value)))
 
 def outputnostrain(outfile_name,community):
     for sequence_id in community:

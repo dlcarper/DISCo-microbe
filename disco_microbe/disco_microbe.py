@@ -174,7 +174,8 @@ def subsample(args):
         for prop in args.proportion:
             prop = prop.strip()
             prop_split = prop.split("\t")
-            goal_prop[prop_split[0]] = float(prop_split[1])
+            if not isclose(0, float(prop_split[1])):
+                goal_prop[prop_split[0]] = float(prop_split[1])
             if not prop_split[0] in grouping_dict:
                 print("ERROR: {} not found in grouping column".format(prop[0]), file=sys.stderr)
                 sys.exit(1)

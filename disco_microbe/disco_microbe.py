@@ -108,16 +108,16 @@ def create(args):
         print("ERROR:No edit distance given", file=sys.stderr)
         sys.exit(1)
     if (args.metadata):
-        strain_info=straininfo(args.metadata)
+        strain_info,metadata_header=straininfo(args.metadata)
         if (args.output):
             print("Joining information")
             print("Writing output file")
-            joinstrain(strain_info,community,args.output)
+            joinstrain(strain_info,community,args.output,metadata_header)
         else:
             print("Creating output file")
             outputfile=outfile(args.edit_value)
             print("Joining information")
-            joinstrain(strain_info,community,outputfile)
+            joinstrain(strain_info,community,outputfile,metadata_header)
     else:
         if (args.output):
             print("Writing output file")
@@ -432,16 +432,19 @@ def straininfo(metadata):
     strain_info ={} # empty dicionary for strain information
     for i, line in enumerate(metadata): # count lines in file
         line=line.strip()
-        if (not i == 0): # if line is not the 1st (so the header)
+        if i == 0:
+            metadata_header=line
+        else:
             fields=line.split("\t") # split on tabs
             strain_info[fields[0]]=fields[1:]
-    return strain_info
+    return (strain_info, metadata_header)
 
 def outfile(editdistance_value):
     outputfile=open('Community_ED{}.txt'.format(editdistance_value),"w+")
     return outputfile
 
-def joinstrain(metadata,community,outfile_name):
+def joinstrain(metadata,community,outfile_name,metadata_header):
+    outfile_name.write("{}\n".format(metadata_header))
     for key, value in metadata.items(): # loop through keys and values in strain dictionary
         if key in community: # if that key is found in community
             outfile_name.write("{}\t{}\n".format(key, "\t".join(value)))

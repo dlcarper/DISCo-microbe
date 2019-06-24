@@ -244,6 +244,7 @@ def subsample(args):
             else:
                 break
 
+        print("Final taxa count: {}".format(current_total))
         print("Actualized proportions")
         for group in current_props:
             print("{}:{:0.4f}".format(group, current_props[group]), file=sys.stderr)

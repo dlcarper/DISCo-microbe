@@ -165,6 +165,8 @@ def subsample(args):
             else:
                 print("ERROR: Group by variable ({}) was not found in the header. The provided headings are {}".format(group_by, ",".join(header)), file=sys.stderr)
                 sys.exit(1)
+        else:
+            print("Grouping column not specified using column 1 ({}) by default".format(header[1]), file=sys.stderr)
 
         grouping_dict = defaultdict(list)
         for taxon in community_list:
@@ -177,7 +179,7 @@ def subsample(args):
             if not isclose(0, float(prop_split[1])):
                 goal_prop[prop_split[0]] = float(prop_split[1])
             if not prop_split[0] in grouping_dict:
-                print("ERROR: {} not found in grouping column".format(prop[0]), file=sys.stderr)
+                print("ERROR: {} not found in grouping column".format(prop_split[0]), file=sys.stderr)
                 sys.exit(1)
 
         if not isclose(1, sum(goal_prop.values())):
@@ -226,7 +228,6 @@ def subsample(args):
                 temp_error_dict[group] = temp_props[group] - goal_prop[group]
                 temp_sse += (temp_props[group] - goal_prop[group])**2
             #Test if new SSE is less then current and proceed accordingly
-            print("num_taxa:{} current:{}".format(args.num_taxa, current_total))
             if temp_sse < current_sse:
                 current_total -= 1
                 current_props = temp_props.copy()

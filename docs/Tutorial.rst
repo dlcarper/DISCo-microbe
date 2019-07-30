@@ -61,7 +61,7 @@ If you wish to generate a community that includes specific strains, you may add 
 Subsample Module
 ----------------
 
-The subsample module is designed to take the final output community from the create module and provide a subsample of the community. The subsample module requires the input of the community generated from the create module. From here, the community can be subsample to either include a specific number of strains (``--p-num-taxa``) or to represent specific proportions of a grouping variable (``--p-proportion``).
+The subsample module is designed to take the final output community from the create module and provide a subsample of the community. The subsample module requires the input of the community generated from the create module. From here, the community can be subsampled to either include a specific number of strains (``--p-num-taxa``) or to represent specific proportions of a grouping variable (``--p-proportion``).
 
 Subsample by total number of members to include
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -82,6 +82,8 @@ To subsample by proportions of a grouping variable, we need to provide the outpu
     >>> disco subsample --i-input-community community_ED3_with_taxonomy.txt --p-proportion Tutorial_proportions_file.txt --p-seed 10 --p-group-by "Class"
 
 
+Tutorial Completed
+------------------
 Congratulations! You have created a list of microbial strains that differ by at least 3 nucleotides. You then subsampled that list to either contain a specified number of strains or to reflect a specified proportion of groups. Please use the help option to view all options for the create and subsample modules.
 
 .. code-block:: bash

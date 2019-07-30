@@ -9,9 +9,10 @@ Welcome to DISCo's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-   Introduction
-   Installation
-   Tutorial
+   
+   Introduction.rst
+   Installation.rst
+   Tutorial.rst
 
 Indices and tables
 ==================

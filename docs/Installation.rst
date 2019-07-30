@@ -7,7 +7,7 @@ DISCo-microbe is a python based package that can easily be installed with ``pip`
 pip
 ===
 
-If you have MacOSX or you can use:
+If you have a native installation of ``python`` you can use:
 
 .. code-block:: bash
 

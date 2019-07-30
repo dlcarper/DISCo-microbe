@@ -18,6 +18,7 @@ git
 ===
 
 The newest development version of disco-microbe may be installed from our github_ page. You can use git directly, or download a zipfile.
+
     .. _github: https://github.com/dlcarper/Disco-microbe
 
 .. code-block:: bash
@@ -30,6 +31,7 @@ The newest development version of disco-microbe may be installed from our github
 anaconda
 ========
 Anaconda_ provides the ``conda`` environment and is the recommended way to install DISCO-microbe if you are operating a Windows machine without a native ``python``. Once you have ``anaconda`` installed, create a ``conda`` environment and then use ``source`` and ``activate`` to launch a ``python`` environment.
+
     .. _Anaconda: https://www.anaconda.com
 
 .. code-block:: bash

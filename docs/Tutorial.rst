@@ -37,7 +37,7 @@ Use the command ``cd`` to navigate and ``ls`` to look inside the ``TUTORIAL_FILE
 Create Module
 -------------
 
-The create module has two required arguments, an alignment of DNA or RNA sequences in FASTA format (--i-alignment) and a user-specified minimum sequence distance between community members (--p-editdistance). For this tutorial we will use an alignment of 16S rRNA genes that were subsampled from RDP, aligned with SINA, and all column gaps were removed. We use an edit distance of 3 so that our final community list will contain community members that have a minimum of 3 nucleotide differences. We will also include a seed for reproducibility purposes (--p-seed). To have taxonomic information in the final community list, we also input a tab-delimited metadata file (--i-metadata) that contains the sequence identifier followed by the taxonomic identification for each sequence.
+The create module has two required arguments, an alignment of DNA or RNA sequences in FASTA format (``--i-alignment``) and a user-specified minimum sequence distance between community members (``--p-editdistance``). For this tutorial we will use an alignment of 16S rRNA genes that were subsampled from RDP, aligned with SINA, and columns with only gaps were removed. We use an edit distance of 3 so that our final community list will contain community members that have a minimum of 3 nucleotide differences. We will also include a seed for reproducibility purposes (``--p-seed``). To have taxonomic information in the final community list, we also input a tab-delimited metadata file (``--i-metadata``) that contains the sequence identifier followed by the taxonomic identification for each sequence.
 
 .. code-block:: bash
 
@@ -47,7 +47,7 @@ This command should generate two files: a text file containing a list of members
 
 Option to include specific strains
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-If you wish to generate a community that includes specific strains, you may add an additional argument (--p-include-strains) of a list of strains that must be included in the final community.
+If you wish to generate a community that includes specific strains, you may add an additional argument (``--p-include-strains``) of a list of strains that must be included in the final community.
 
 .. note::
 
@@ -61,11 +61,11 @@ If you wish to generate a community that includes specific strains, you may add 
 Subsample Module
 ----------------
 
-The subsample module is designed to take the final output community from the create module and provide a subsample of the community. The subsample module requires the input of the community generated from the create module. From here, the community can be subsample to either include a specific number of strains (--p-num-taxa) or to represent specific proportions of a grouping variable (--p-proportion).
+The subsample module is designed to take the final output community from the create module and provide a subsample of the community. The subsample module requires the input of the community generated from the create module. From here, the community can be subsample to either include a specific number of strains (``--p-num-taxa``) or to represent specific proportions of a grouping variable (``--p-proportion``).
 
 Subsample by total number of members to include
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-To subsample by number of members to include, we need to provide the output community from the create module (--i-input) and the number of strains to include in the final community (--p-num-taxa). We will limit our community to 100 members and also include a seed number for reproducibility.
+To subsample by number of members to include, we need to provide the output community from the create module (``--i-input``) and the number of strains to include in the final community (``--p-num-taxa``). We will limit our community to 100 members and also include a seed number for reproducibility.
 
 .. code-block:: bash
 
@@ -75,7 +75,7 @@ The above command should generate a tab delimited file that contains a list with
 
 Subsample by proportions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-To subsample by proportions of a grouping variable, we need to provide the output community from the create module (--i-input) and a file containing proportions of each group you wish to include (--p-proportion). We will subsample our community to reflect taxonomic proportions at the class level, of a natural microbiome and also include a seed number for reproducibility. We also need to indicate the column of the input community that we want to group by (here we use class).
+To subsample by proportions of a grouping variable, we need to provide the output community from the create module (``--i-input``) and a file containing proportions of each group you wish to include (``--p-proportion``). We will subsample our community to reflect taxonomic proportions at the class level, of a natural microbiome and also include a seed number for reproducibility. We also need to indicate the column of the input community that we want to group by (here we use class).
 
 .. code-block:: bash
 

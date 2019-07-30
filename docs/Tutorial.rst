@@ -4,7 +4,7 @@ DISCo-microbe Tutorial
 This tutorial covers a DISCo workflow to generate a list of organisms that are identifiable at a user-specified edit distance (or minimum number of nucleotide differences) for a targeted region of DNA. The goal is to become familiarized with the general workflow, data files, and parameter settings in DISCo. We will use a referenced-based alignment of 16S rRNA gene sequences trimmed to the V4 region as an example, but the workflow applies to any other marker gene or organisms (e.g. fungal or other organism). Follow along by copy/pasting the
 code-blocks into a command line terminal.
 
-.. note::
+:Note:
 
     If you haven't installed DISCo yet, go here first:
     Installation_
@@ -49,7 +49,7 @@ Option to include specific strains
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 If you wish to generate a community that includes specific strains, you may add an additional argument (``--p-include-strains``) of a list of strains that must be included in the final community.
 
-.. note::
+:Note:
 
     The list of strains must have an edit distance greater than or equal to the edit distance you provide for the final community. If your input list of strains have less nucleotide differences than the edit distance you specify, you will receive a conflict warning and must address the conflicts before proceeding.
 

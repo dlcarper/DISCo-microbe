@@ -1,7 +1,4 @@
 Introduction
 ==================================
 
-Background
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-From final version of manuscript
+Design of an Identifiable Synthetic Community of Microbes (DISCo-microbe) is an easy-to-use command-line program, for creation of diverse communities of organisms that can be distinguished through next-generation sequencing technology. DISCo-microbe consists of two modules, create and subsample. The create module constructs a highly diverse community at a specified sequence difference from an input of aligned DNA/RNA sequences, e.g., 16S sequence. The module can either design a de novo community or design a community that includes targeted organisms. create solves problem (1) by easily generating a diverse community of members through an easily documentable method, ensuring reproducibility. The subsample module provides options for dividing the community into subsets, according to either the number of members or the proportions of a grouping variable, both of which can be specified by the user. subsample module solves problem (2) by allowing the user to subsample an already distinguishable community of members based on attributes of interest. Although this software was designed for construction of microbial communities, any DNA/RNA alignment can be used as input; consequently, users are not restricted to any particular organismal group or marker gene. This program is implemented in Python and is available through GitHub and PYPI. 

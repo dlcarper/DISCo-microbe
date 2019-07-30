@@ -9,8 +9,9 @@ Welcome to DISCo's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-
-
+   Introduction
+   Installation
+   Tutorial
 
 Indices and tables
 ==================

@@ -26,7 +26,8 @@ Use the command ``cd`` to navigate and ``ls`` to look inside the ``TUTORIAL_FILE
 
 .. code-block:: bash
 
-    >>> ls TUTORIAL_FILES/
+    >>> cd TUTORIAL_FILES/
+    >>> ls
 
 .. parsed-literal::
     Tutorial_Metdata_file.txt

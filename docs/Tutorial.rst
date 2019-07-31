@@ -22,7 +22,7 @@ Use the commands below to download and extract the data in a command-line interf
     >>> wget -L https://github.com/dlcarper/DISCo-microbe/raw/master/TUTORIAL_FILES.tar.gz
     >>> tar -xvzf TUTORIAL_FILES.tar.gz
 
-Use the command ``cd`` to navigate and ``ls`` to look inside the ``TUTORIAL_FILES/`` directory. You will see that it contains different files to input in each module as well as examples of outputs from the program.
+Use the command ``cd`` to navigate and ``ls`` to look inside the ``TUTORIAL_FILES/`` directory. You will see that it contains different files to input in each module. 
 
 .. code-block:: bash
 

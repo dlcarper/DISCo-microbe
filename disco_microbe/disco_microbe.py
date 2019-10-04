@@ -390,9 +390,19 @@ def withoutcommunityinput(edit_distance_dictionary,editdistance_value):
     return community
 
 def loopforCommunity(community,editdistance_value,edit_distance_dictionary):
-    not_community=[]#list of members to not put in community
+    not_community=[]#set of members to not put in community
+    not_community_set = set()
+
     distances=list(range(editdistance_value)) #Create a list of numbers below edit distance value
     distances.append(editdistance_value)# append edit distance value to list
+    
+    #setup not_community list
+    not_community_set.update(community)
+    for taxa in community:
+        for edistance in distances:
+            if edistance in edit_distance_dictionary[taxa]:
+                not_community_set.update(edit_distance_dictionary[taxa][edistance])
+
     while True:# while there are members to loop through
         smallest=500
         smallest_sequence=""
@@ -400,29 +410,27 @@ def loopforCommunity(community,editdistance_value,edit_distance_dictionary):
         shuffle_keys=list(edit_distance_dictionary.keys())
         random.shuffle(shuffle_keys)
         for key in shuffle_keys:# loop through keys agains
-            member = False # set to false to keep looping
-            if key in community:#check if key is already in the communitiy
+            #member = False # set to false to keep looping
+            if key in not_community_set:#check if key is already in the communitiy
                 continue #if key in community skip
             else:#if key is not in community check if it is the value for the community members
-                for key2 in community:# loop through keys in community
-                    if any([key in edit_distance_dictionary[key2][editdistance_value] for editdistance_value in distances if editdistance_value in edit_distance_dictionary[key2]]):
-                        #check if key you are examining is a member of any member of the communities values at the edit distance 0 to input
-                        member=True # set member to true
-                        if not key in not_community: # if that key is not in not_community list add it
-                            not_community.append(key)
-                        break# if it is true break this loop
-                if not member: #if key is not a member
-                    if editdistance_value in edit_distance_dictionary[key]:# check if edit value is  present for key
-                        if len(edit_distance_dictionary[key][editdistance_value])<smallest:#Check if the length of the values for the key at edit distance of input is less than the smallest number
-                            smallest= len(edit_distance_dictionary[key][editdistance_value])#set smallest to the length of the smallest list
-                            smallest_sequence= key#Set smallest seqeunce equal to the key
-                    else: # if edit value isnt present in key
-                        EDnot_in_dict.append(key) # add to list
+                if editdistance_value in edit_distance_dictionary[key]:# check if edit value is  present for key
+                    if len(edit_distance_dictionary[key][editdistance_value])<smallest:#Check if the length of the values for the key at edit distance of input is less than the smallest number
+                        smallest= len(edit_distance_dictionary[key][editdistance_value])#set smallest to the length of the smallest list
+                        smallest_sequence= key#Set smallest seqeunce equal to the key
+                else: # if edit value isnt present in key
+                    EDnot_in_dict.append(key) # add to list
         if smallest_sequence or EDnot_in_dict: # if either of these have a value
             if EDnot_in_dict: # if this list is not empty
                 community.append(random.choice(EDnot_in_dict)) # choose random member from list
             else: # if it is empty
                 community.append(smallest_sequence) # append community with smallest sequence
+            
+            #update not_set
+            not_community_set.add(community[-1])
+            for edistance in distances:
+                if edistance in edit_distance_dictionary[community[-1]]:
+                    not_community_set.update(edit_distance_dictionary[community[-1]][edistance])
         else: # if they dont have a value
             break # break because we are out of members
 

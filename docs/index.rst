@@ -7,7 +7,7 @@ Welcome to DISCo's documentation!
 =================================
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 4
    :caption: Contents:
    
    Introduction.rst

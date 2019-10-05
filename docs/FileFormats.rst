@@ -26,14 +26,35 @@ Input files
 
 :Example:
   S003715306
+  
   S003614093
+  
   S001611178
 
 --i-metadata: Information to combine with the community output. File must contain a header, be tab-delimited, and contain the identifiers in the first column
 
 :Example:
   ID	Phylum	Class
+  
   S003715306	Actinobacteria	Actinobacteria
+  
   S003614093	Actinobacteria	Actinobacteria
+  
   S001611178	Actinobacteria	Actinobacteria
+  
   S000014419	Actinobacteria	Actinobacteria
+
+--i-distance-dictionary:Pre-calculated distance dictionary of sequences, this is created when a previous create command has been run with the same strains
+
+:Example:
+  S003715306	S003614093	28
+  
+  S003715306	S001611178	50
+  
+  S003715306	S000014419	48
+  
+  S003715306	S000015295	49
+  
+  S003715306	S000022350	42
+  
+  S003715306	S000129061	44

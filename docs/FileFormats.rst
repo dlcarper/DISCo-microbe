@@ -5,8 +5,8 @@ File Format Descriptions
 Create module
 ==============
 
-Input files
-===========
+**Input files**
+
 --i-alignment: This is an alignment of all sequences the user would like to evaluate in FASTA format
 
 :Example: 
@@ -44,7 +44,7 @@ Input files
   
   S000014419	Actinobacteria	Actinobacteria
 
---i-distance-dictionary:Pre-calculated distance dictionary of sequences, this is created when a previous create command has been run with the same strains
+--i-distance-dictionary: Pre-calculated distance dictionary of sequences, this is created when a previous create command has been run with the same strains. It is a tab delimited file with each line comparing two sequences. The sequence identifiers are in the first two columns and the edit distance between them is in the third
 
 :Example:
   S003715306	S003614093	28
@@ -58,3 +58,56 @@ Input files
   S003715306	S000022350	42
   
   S003715306	S000129061	44
+
+**Output files**
+
+ --o-community-list: A tab delimited list of strains, with each strain on its own line with a header line. If metadata is supplied it will be combined with this output
+
+:Example:
+  ID	Phylum	Class
+  
+  S003715306	Actinobacteria	Actinobacteria
+  
+  S003614093	Actinobacteria	Actinobacteria
+  
+  S001611178	Actinobacteria	Actinobacteria
+  
+  S000014419	Actinobacteria	Actinobacteria
+  
+--o-fasta: A FASTA file containing only the strains in the constructed community
+
+Subsample module
+================
+
+**Input files**
+
+ --i-input-community: Tab seperated file with taxa ids in the first column with metadata in additional columns, output of create module
+ 
+:Example:
+  ID	Phylum	Class
+  
+  S003715306	Actinobacteria	Actinobacteria
+  
+  S003614093	Actinobacteria	Actinobacteria
+  
+  S001611178	Actinobacteria	Actinobacteria
+  
+  S000014419	Actinobacteria	Actinobacteria
+
+--p-proportion: File of the relative proportions of each taxonomic rank desired in final community. Each rank is contained on its own line. The rank and the proportion are seperated by a tab.
+
+:Example:
+  Actinobacteria	0.1
+  
+  Aquificae	0.001
+  
+  Bacteroidia	0.05
+  
+  Flavobacteriia	0.001
+  
+  Sphingobacteriia	0.003
+
+**Output files**
+
+A file with each sequence identifier on its own lines for the subsampled community
+

@@ -13,6 +13,7 @@ Welcome to DISCo's documentation!
    Introduction.rst
    Installation.rst
    Tutorial.rst
+   FileFormats.rst
 
 Indices and tables
 ==================

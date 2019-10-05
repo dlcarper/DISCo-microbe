@@ -5,6 +5,8 @@ File Format Descriptions
 Create module
 ==============
 
+Input files
+===========
 --i-alignment: This is an alignment of all sequences the user would like to evaluate in FASTA format
 
 :Example: 
@@ -19,3 +21,19 @@ Create module
   >S001611178
   
   GCGGTA-AT-ACGTAG-GGCGCGAGCGTTGTC-CGG-AATTATTGG-GCGTAAA-GGGCTCGTAG-G-CGGCTT-GTTGCGC-CTGCTGTGAAA-AC-GCGGGG-CTTAACT-CCGCG-C-GT-	G-CAGTGGG-TAC-GGG-CA-GG-C-TT-GAGTGTGGTA-GGGGTG-AC-TGGA-ATT-CC-A-GGTGTAGCGGTGGAATGCGCAG-ATATCT-GG-AGGA-ACACCGAT-G-GCGAAGGCAG-	GTCA-CTGGGC-CATTACT-GA-CGCTGA-GG--A-GCGAAA-GCGTGGG-T-AGCGAA-CAGGATTAGATA
+
+--p-include-strains: A list of community members the community the user would like added. Each sequence identifier (must match what is in alignment)is on its own line
+
+:Example:
+  S003715306
+  S003614093
+  S001611178
+
+--i-metadata: Information to combine with the community output. File must contain a header, be tab-delimited, and contain the identifiers in the first column
+
+:Example:
+  ID	Phylum	Class
+  S003715306	Actinobacteria	Actinobacteria
+  S003614093	Actinobacteria	Actinobacteria
+  S001611178	Actinobacteria	Actinobacteria
+  S000014419	Actinobacteria	Actinobacteria

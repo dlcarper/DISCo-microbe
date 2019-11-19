@@ -1,5 +1,4 @@
 import sys
-import re
 import random
 import os
 import argparse
@@ -47,6 +46,7 @@ def main():
                     help="Tab seperated file with taxa ids in the first column with metadata in additional columns, output of create module (REQUIRED)")
     parser_subsample.add_argument("--p-num-taxa", "-n", type=int, dest="num_taxa",
                     help="Number of strains desired in final community")
+    parser_subsample.add_argument("--p-max-communities", action="store_true", dest="max_comm", default = False, help="When used with --p-num-taxa produce maximum number of unique communities with --p-num-taxa strains")
     parser_subsample.add_argument("--p-group-by", dest="group_by",
                         help="Column name to group-by for proportion calculation. Default to second column")
     parser_subsample.add_argument("--p-proportion", type=argparse.FileType("r"),dest="proportion",
@@ -135,12 +135,17 @@ def subsample(args):
         print("ERROR: The --taxa-num-enforce option must be used with the --proportion option", file=sys.stderr)
         sys.exit(1)
     elif args.num_enforce and not args.num_taxa:
-        print("ERROR: The --taxa-num-enforce option must be used with the --num-taxa option", file=sys.stderr)
+        print("ERROR: The --p-taxa-num-enforce option must be used with the --p-num-taxa option", file=sys.stderr)
         sys.exit(1)
     elif not (args.num_taxa or args.proportion):
-        print("ERROR: Either the --num-taxa or --proportion option required", file=sys.stderr)
+        print("ERROR: Either the --p-num-taxa or --p-proportion option required", file=sys.stderr)
         sys.exit(1)
-
+    elif args.max_comm and not args.num_taxa:
+        print("ERROR: The --p-max-communities must be used with the --p-num-taxa option", file=sys.stderr)
+        sys.exit(1)
+    elif args.max_comm and args.proportion:
+        print("ERROR: The --p-max-communities can not be used with the --p-proportion option", file=sys.stderr)
+        sys.exit(1)
 
     random.seed(args.seed)
     community_list = [line.strip().split("\t") for line in args.community]
@@ -152,18 +157,34 @@ def subsample(args):
         sys.exit(1)
 
     if args.num_taxa and not args.proportion:
-        new_community=random.sample(community_list,args.num_taxa)
-        with open("Subsampled_community_taxa{}.txt".format(args.num_taxa),"w") as subsample_output:
-            print("\t".join(header), file=subsample_output)
-            for member in new_community:
-                print("{}".format("\t".join(member)), file=subsample_output)
+        if args.max_comm:
+            comm_count = 1
+            while True:
+                new_community = random.sample(community_list, args.num_taxa)
+                with open("Subsampled_community_taxa{}_{}.txt".format(args.num_taxa, comm_count), "w") as subsample_output:
+                    print("\t".join(header), file=subsample_output)
+                    for member in new_community:
+                        print("{}".format("\t".join(member)), file=subsample_output)
+                if len(community_list) - args.num_taxa < args.num_taxa:
+                    break
+                else:
+                    comm_count += 1
+                    for member in new_community:
+                        community_list.remove(member)
+        else:
+            with open("Subsampled_community_taxa{}.txt".format(args.num_taxa), "w") as subsample_output:
+                new_community = random.sample(community_list, args.num_taxa)
+                print("\t".join(header), file=subsample_output)
+                for member in new_community:
+                    print("{}".format("\t".join(member)), file=subsample_output)
+
     elif args.proportion:
         group_by_col = 1
         if args.group_by:
             if args.group_by in header:
                 group_by_col = header.index(args.group_by)
             else:
-                print("ERROR: Group by variable ({}) was not found in the header. The provided headings are {}".format(group_by, ",".join(header)), file=sys.stderr)
+                print("ERROR: Group by variable ({}) was not found in the header. The provided headings are {}".format(args.group_by, ",".join(header)), file=sys.stderr)
                 sys.exit(1)
         else:
             print("Grouping column not specified using column 1 ({}) by default".format(header[1]), file=sys.stderr)

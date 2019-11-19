@@ -301,6 +301,10 @@ def customeditdistance(seq1,seq2):
     for char1, char2 in zip(seq1,seq2):
             if char1==char2:
                 edvalue+=0
+            elif char1=="-":
+                edvalue+=0
+            elif char2=="-":
+                edvalue+=0
             else:
                 if char1 in standardcode:
                     if char2 in standardcode:
@@ -416,7 +420,7 @@ def loopforCommunity(community,editdistance_value,edit_distance_dictionary):
 
     distances=list(range(editdistance_value)) #Create a list of numbers below edit distance value
     distances.append(editdistance_value)# append edit distance value to list
-    
+
     #setup not_community list
     not_community_set.update(community)
     for taxa in community:
@@ -446,7 +450,7 @@ def loopforCommunity(community,editdistance_value,edit_distance_dictionary):
                 community.append(random.choice(EDnot_in_dict)) # choose random member from list
             else: # if it is empty
                 community.append(smallest_sequence) # append community with smallest sequence
-            
+
             #update not_set
             not_community_set.add(community[-1])
             for edistance in distances:

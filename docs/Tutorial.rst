@@ -22,7 +22,7 @@ Use the commands below to download and extract the data in a command-line interf
     >>> wget -L https://github.com/dlcarper/DISCo-microbe/raw/master/TUTORIAL_FILES.tar.gz
     >>> tar -xvzf TUTORIAL_FILES.tar.gz
 
-Use the command ``cd`` to navigate and ``ls`` to look inside the ``TUTORIAL_FILES/`` directory. You will see that it contains different files to input in each module. 
+Use the command ``cd`` to navigate and ``ls`` to look inside the ``TUTORIAL_FILES/`` directory. You will see that it contains different files to input in each module.
 
 .. code-block:: bash
 
@@ -30,10 +30,12 @@ Use the command ``cd`` to navigate and ``ls`` to look inside the ``TUTORIAL_FILE
     >>> ls
 
 .. parsed-literal::
-    Tutorial_Metdata_file.txt
-    Tutorial_alignment.fasta
-    Tutorial_proportions_file.txt
-    Tutorial_starter_community_file.txt
+    18S_example/
+    RDP_distance_dictionary_20191126-150855.txt
+    RDP_Tutorial_Metdata_file.txt
+    RDP_Tutorial_alignment.fasta
+    RDP_Tutorial_proportions_file.txt
+    RDP_Tutorial_starter_community_file.txt
 
 Create Module
 -------------
@@ -42,7 +44,7 @@ The create module has two required arguments, an alignment of DNA or RNA sequenc
 
 .. code-block:: bash
 
-    >>> disco create --i-alignment Tutorial_alignment.fasta --p-editdistance 3 --p-seed 10 --i-metadata Tutorial_Metdata_file.txt --o-community-list community_ED3_with_taxonomy.txt
+    >>> disco create --i-alignment RDP_Tutorial_alignment.fasta --p-editdistance 3 --p-seed 10 --i-metadata RDP_Tutorial_Metdata_file.txt --o-community-list community_ED3_with_taxonomy.txt
 
 This command should generate two files: a text file containing a list of members that differ by at least 3 nucleotides and a distance dictionary. The distance dictionary is a database of the pairwise sequence similarities for the provided community alignment. This distance database can be used as a starting point for the create module if you were to add community members to your existing alignment and only needed to calculate the pairwise distances for the new members.
 
@@ -56,7 +58,16 @@ If you wish to generate a community that includes specific strains, you may add 
 
 .. code-block:: bash
 
-        >>> disco create --i-alignment Tutorial_alignment.fasta --p-editdistance 3 --p-seed 10 --i-metadata Tutorial_Metdata_file.txt --o-community-list community_ED3_with_taxonomy_specific.txt  --p-include-strains Tutorial_starter_community_file.txt
+        >>> disco create --i-alignment RDP_Tutorial_alignment.fasta --p-editdistance 3 --p-seed 10 --i-metadata RDP_Tutorial_Metdata_file.txt --o-community-list community_ED3_with_taxonomy_specific.txt  --p-include-strains RDP_Tutorial_starter_community_file.txt
+
+Option to start with input dictionary
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you wish to start with a pre-existing distance dictionary simply specify in your create command
+
+.. code-block:: bash
+
+    >>> disco create --i-alignment RDP_Tutorial_alignment.fasta --p-editdistance 3 --p-seed 10 --i-metadata RDP_Tutorial_Metdata_file.txt --o-community-list community_ED3_with_taxonomy.txt --i-distance-dictionary RDP_distance_dictionary_20191126-150855.txt
 
 
 Subsample Module
@@ -80,8 +91,27 @@ To subsample by proportions of a grouping variable, we need to provide the outpu
 
 .. code-block:: bash
 
-    >>> disco subsample --i-input-community community_ED3_with_taxonomy.txt --p-proportion Tutorial_proportions_file.txt --p-seed 10 --p-group-by "Class"
+    >>> disco subsample --i-input-community community_ED3_with_taxonomy.txt --p-proportion RDP_Tutorial_proportions_file.txt --p-seed 10 --p-group-by "Class"
 
+18S example
+-----------
+
+Below is an example of how to create a community using an 18S aligned dataset and to subsample using the environment they were isolated from
+
+.. code-block:: bash
+
+    >>> cd 18S_example/
+    >>> ls
+
+.. parsed-literal::
+    18S_metadata.txt
+    18S_proportion_file.txt
+    18S_region_aligned.fasta
+
+.. code-block:: bash
+
+  >>> disco create --i-alignment 18S_region_aligned.fasta --p-editdistance 3 --p-seed 10 --i-metadata 18S_metadata.txt --o-community-list community_ED3_18S.txt
+  >>> disco subsample --i-input-community community_ED3_18S.txt --p-proportion 18S_proportion_file.txt --p-seed 10 --p-group-by Environment
 
 Tutorial Completed
 ------------------

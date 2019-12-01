@@ -60,14 +60,14 @@ If you wish to generate a community that includes specific strains, you may add 
 
         >>> disco create --i-alignment RDP_Tutorial_alignment.fasta --p-editdistance 3 --p-seed 10 --i-metadata RDP_Tutorial_Metdata_file.txt --o-community-list community_ED3_with_taxonomy_specific.txt  --p-include-strains RDP_Tutorial_starter_community_file.txt
 
-Option to start with input dictionary
+Option to start with input database
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you wish to start with a pre-existing distance dictionary simply specify in your create command
+If you wish to start with a pre-existing distance database simply specify in your create command
 
 .. code-block:: bash
 
-    >>> disco create --i-alignment RDP_Tutorial_alignment.fasta --p-editdistance 3 --p-seed 10 --i-metadata RDP_Tutorial_Metdata_file.txt --o-community-list community_ED3_with_taxonomy.txt --i-distance-dictionary RDP_distance_dictionary_20191126-150855.txt
+    >>> disco create --i-alignment RDP_Tutorial_alignment.fasta --p-editdistance 3 --p-seed 10 --i-metadata RDP_Tutorial_Metdata_file.txt --o-community-list community_ED3_with_taxonomy.txt --i-distance-database RDP_distance_dictionary_20191126-150855.txt
 
 
 Subsample Module

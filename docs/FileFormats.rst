@@ -44,7 +44,7 @@ Create module
   
   S000014419	Actinobacteria	Actinobacteria
 
---i-distance-dictionary: Pre-calculated distance dictionary of sequences, this is created when a previous create command has been run with the same strains. It is a tab delimited file with each line comparing two sequences. The sequence identifiers are in the first two columns and the edit distance between them is in the third
+--i-distance-database: Pre-calculated distance database of sequences, this is created when a previous create command has been run with the same strains. It is a tab delimited file with each line comparing two sequences. The sequence identifiers are in the first two columns and the edit distance between them is in the third
 
 :Example:
   S003715306	S003614093	28

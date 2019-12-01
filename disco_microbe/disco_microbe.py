@@ -26,8 +26,8 @@ def main():
                           help="Alignment file in fasta form (REQUIRED)")
     parser_create.add_argument("--i-metadata",type=argparse.FileType("r"),dest="metadata",
                         help="Information to combine with the community output. File must contain a header, be tab-delimited, and contain the identifiers in the first column")
-    parser_create.add_argument("--i-distance-dictionary",type=argparse.FileType("r"),dest="distance_dictionary",
-                        help="Pre-calculated distance dictionary of sequences")
+    parser_create.add_argument("--i-distance-database",type=argparse.FileType("r"),dest="distance_dictionary",
+                        help="Pre-calculated distance database of sequences")
     create_required.add_argument("--p-editdistance",type=int, dest="edit_value",required=True,
                          help="Edit distance value as integer (REQUIRED)")
     parser_create.add_argument("--p-include-strains",type=argparse.FileType("r"),dest="starter_community",

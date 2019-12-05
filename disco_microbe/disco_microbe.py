@@ -15,43 +15,44 @@ from disco_microbe._version import __version__
 def main():
     parser = argparse.ArgumentParser(prog="disco", add_help=False)
     parser.add_argument('-v', '--version', action='version', version="v{}".format(__version__))
-    parser.add_argument("--p-seed",type=int,default=os.urandom(64),dest="seed",
+    parser.add_argument("--p-seed", type=int, default=os.urandom(64), dest="seed",
                         help="Seed number as integer. This allows reproducibility of output community. Default to random seed number.")
     subparsers = parser.add_subparsers(help="sub-command help")
 
     #Create subcommand
-    parser_create = subparsers.add_parser("create", parents=[parser],help='Module to create highly diverse community at specified edit distance')
+    parser_create = subparsers.add_parser("create", parents=[parser], help='Module to create highly diverse community at specified edit distance')
     create_required = parser_create.add_argument_group("required named arguments")
-    create_required.add_argument("--i-alignment", type=argparse.FileType("r"),dest="input_alignment",required=True,
-                          help="Alignment file in fasta form (REQUIRED)")
-    parser_create.add_argument("--i-metadata",type=argparse.FileType("r"),dest="metadata",
-                        help="Information to combine with the community output. File must contain a header, be tab-delimited, and contain the identifiers in the first column")
-    parser_create.add_argument("--i-distance-database",type=argparse.FileType("r"),dest="distance_dictionary",
-                        help="Pre-calculated distance database of sequences")
-    create_required.add_argument("--p-editdistance",type=int, dest="edit_value",required=True,
-                         help="Edit distance value as integer (REQUIRED)")
-    parser_create.add_argument("--p-include-strains",type=argparse.FileType("r"),dest="starter_community",
-                        help="List of strains the final community must include with each identifier on its own line")
-    parser_create.add_argument("--o-community-list",type=argparse.FileType("w"),dest="output",
-                            help="Output file name")
-    parser_create.add_argument("--o-fasta",type=argparse.FileType("w"),dest="output_fasta",
-                        help="Output final community sequences in fasta format")
+    create_required.add_argument("--i-alignment", type=argparse.FileType("r"), dest="input_alignment", required=True,
+                                 help="Alignment file in fasta form (REQUIRED)")
+    parser_create.add_argument("--i-metadata", type=argparse.FileType("r"), dest="metadata",
+                               help="Information to combine with the community output. File must contain a header, be tab-delimited, and contain the identifiers in the first column")
+    parser_create.add_argument("--i-distance-database", type=argparse.FileType("r"), dest="distance_dictionary",
+                               help="Pre-calculated distance database of sequences")
+    create_required.add_argument("--p-editdistance", type=int, dest="edit_value", required=True,
+                                 help="Edit distance value as integer (REQUIRED)")
+    parser_create.add_argument("--p-include-strains", type=argparse.FileType("r"), dest="starter_community",
+                               help="List of strains the final community must include with each identifier on its own line")
+    parser_create.add_argument("--o-community-list", type=argparse.FileType("w"), dest="output",
+                               help="Output file name")
+    parser_create.add_argument("--o-fasta", type=argparse.FileType("w"), dest="output_fasta",
+                               help="Output final community sequences in fasta format")
 
     parser_create.set_defaults(func=create)
 
     #Subsample subcommand
-    parser_subsample=subparsers.add_parser("subsample", parents=[parser],help="Module to subsample highly diverse community")
+    parser_subsample=subparsers.add_parser("subsample", parents=[parser], help="Module to subsample highly diverse community")
     subsample_required = parser_subsample.add_argument_group("required named arguments")
-    subsample_required.add_argument("--i-input-community",  type=argparse.FileType("r"),dest="community",required=True,
+    subsample_required.add_argument("--i-input-community", type=argparse.FileType("r"), dest="community", required=True,
                     help="Tab seperated file with taxa ids in the first column with metadata in additional columns, output of create module (REQUIRED)")
     parser_subsample.add_argument("--p-num-taxa", "-n", type=int, dest="num_taxa",
                     help="Number of strains desired in final community")
-    parser_subsample.add_argument("--p-max-communities", action="store_true", dest="max_comm", default = False, help="When used with --p-num-taxa produce maximum number of unique communities with --p-num-taxa strains")
+    parser_subsample.add_argument("--p-max-communities", action="store_true", dest="max_comm", default=False, help="When used with --p-num-taxa produce maximum number of unique communities with --p-num-taxa strains")
     parser_subsample.add_argument("--p-group-by", dest="group_by",
                         help="Column name to group-by for proportion calculation. Default to second column")
-    parser_subsample.add_argument("--p-proportion", type=argparse.FileType("r"),dest="proportion",
+    parser_subsample.add_argument("--p-proportion", type=argparse.FileType("r"), dest="proportion",
                         help="File of the relative proportions of each taxonomic rank desired in final community")
     parser_subsample.add_argument("--p-taxa-num-enforce", action="store_true", dest="num_enforce", default=False, help="Enforce number of strains over the proportions")
+    parser_subsample.add_argument("--o-subsample", dest="suboutput", default="Subsampled_community_taxa", help="File name prefix for subsample output file. Default: Subsampled_community_taxa")
     parser_subsample.set_defaults(func=subsample)
 
     # Parse args
@@ -161,7 +162,7 @@ def subsample(args):
             comm_count = 1
             while True:
                 new_community = random.sample(community_list, args.num_taxa)
-                with open("Subsampled_community_taxa{}_{}.txt".format(args.num_taxa, comm_count), "w") as subsample_output:
+                with open("{}{}_{}.txt".format(args.suboutput, args.num_taxa, comm_count), "w") as subsample_output:
                     print("\t".join(header), file=subsample_output)
                     for member in new_community:
                         print("{}".format("\t".join(member)), file=subsample_output)
@@ -172,7 +173,7 @@ def subsample(args):
                     for member in new_community:
                         community_list.remove(member)
         else:
-            with open("Subsampled_community_taxa{}.txt".format(args.num_taxa), "w") as subsample_output:
+            with open("{}{}.txt".format(args.suboutput, args.num_taxa), "w") as subsample_output:
                 new_community = random.sample(community_list, args.num_taxa)
                 print("\t".join(header), file=subsample_output)
                 for member in new_community:
@@ -269,7 +270,7 @@ def subsample(args):
         print("Actualized proportions")
         for group in current_props:
             print("{}:{:0.4f}".format(group, current_props[group]), file=sys.stderr)
-        with open("Subsampled_community_taxa_prop.txt", "w") as subsample_output:
+        with open("{}.txt".format(args.suboutput), "w") as subsample_output:
             print("\t".join(header), file=subsample_output)
             for group in grouping_dict:
                 for taxa in grouping_dict[group]:
